@@ -14,6 +14,7 @@ intenderinos.members = True
 client = discord.Client(intents=intenderinos)
 tree = app_commands.CommandTree(client)
 
+COOLDOWN_SECONDS = 60 * 5
 
 @client.event
 async def on_ready():
@@ -28,6 +29,7 @@ async def hello(interaction: discord.Interaction):
 
 
 @tree.command(description="Submit your code.")
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @app_commands.describe(attachment="The code to submit", language="progamming language")
 async def submit(interaction: discord.Interaction, attachment: discord.Attachment, language: str):
     await interaction.response.defer()
@@ -45,7 +47,7 @@ async def submit(interaction: discord.Interaction, attachment: discord.Attachmen
 
         return
 
-
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="Test Submit Command.")
 async def testsubmit(interaction: discord.Interaction):
     await interaction.response.defer(ephemeral=True)
@@ -73,6 +75,24 @@ async def testsubmit(interaction: discord.Interaction):
 @app_commands.describe()
 async def top10(interaction: discord.Interaction):
     await interaction.response.send_message(await format_rank_list(interaction, Points.get_instance().getTop(10), 10))
+
+
+@tree.error
+async def tree_errors(interaction: discord.Interaction, error: app_commands.AppCommandError):
+    if isinstance(error, app_commands.CommandOnCooldown):
+        
+        await interaction.response.send_message(f"You are on cooldown. Try again in {readable(int(error.cooldown.get_retry_after()))}", ephemeral=True)
+        
+
+def readable(seconds: int):
+    h = seconds // 3600
+    m = (seconds % 3600) // 60
+    s = (seconds % 3600) % 60
+
+    times = {"hour": h, "minute": m, "second":s}
+
+    return " and ".join([f"{v} {k}{'s'[:v^1]}" for k, v in times.items() if v])
+
 
 Points.get_instance().init_points()
 client.run(BOT_TOKEN)
