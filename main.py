@@ -1,20 +1,20 @@
 import discord
-from discord import Attachment, app_commands
+from discord import app_commands
 from points_table.points import Points
 
 from token_fetching.token_fetch import BOT_TOKEN
 
 # Modules
+from points_table.points import Points
 from command_handling.submission_handler import handle_submission
 from command_handling.rank_list_handler import format_rank_list
-from points_table.points import Points
+from command_handling.first_handler import get_first_stats
+from command_handling.timeout_handler import COOLDOWN_SECONDS, readable
 
 intenderinos = discord.Intents.default()
 intenderinos.members = True
 client = discord.Client(intents=intenderinos)
 tree = app_commands.CommandTree(client)
-
-COOLDOWN_SECONDS = 60 * 5
 
 @client.event
 async def on_ready():
@@ -22,6 +22,18 @@ async def on_ready():
     await tree.sync()
     print('-------------------------------------')
 
+
+''' **************************************************
+    COMMANDS
+    currenty supported commands:
+        * hello : Say hello.
+        * submit : Submit your code.
+        * top10: Provides the Top 10 members
+        * top: Provides the Top given value members.
+        * mypoints: Provides how many points you have.
+        * first: Compares you with the first place member.
+
+****************************************************'''
 
 @tree.command(description="Say hello.")
 async def hello(interaction: discord.Interaction):
@@ -70,29 +82,35 @@ async def testsubmit(interaction: discord.Interaction):
 
         return
 
-
-@tree.command(description="Returns the Top 10 Users.")
-@app_commands.describe()
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+@tree.command(description="provides the Top 10 members.")
 async def top10(interaction: discord.Interaction):
     await interaction.response.send_message(await format_rank_list(interaction, Points.get_instance().getTop(10), 10))
 
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+@tree.command(description="Provides the Top given value members.")
+@app_commands.describe(value="What number of the top members you want to see")
+async def top(interaction: discord.Interaction, value: int):
+    await interaction.response.send_message(await format_rank_list(interaction, Points.get_instance().getTop(value), value))
 
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+@tree.command(description="Provides how many points you have.")
+async def mypoints(interaction: discord.Interaction):
+    await interaction.response.send_message(f'You currently have {Points.get_instance().getPoints(interaction.user.id)} point(s).')
+
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+@tree.command(description="Compares you with the first place member.")
+async def first(interaction: discord.Interaction):
+    await interaction.response.defer()
+    await interaction.followup.send(get_first_stats(interaction))
+
+'''******************************************************
+    ERROR HANDLING
+******************************************************'''
 @tree.error
 async def tree_errors(interaction: discord.Interaction, error: app_commands.AppCommandError):
     if isinstance(error, app_commands.CommandOnCooldown):
-        
         await interaction.response.send_message(f"You are on cooldown. Try again in {readable(int(error.cooldown.get_retry_after()))}", ephemeral=True)
-        
-
-def readable(seconds: int):
-    h = seconds // 3600
-    m = (seconds % 3600) // 60
-    s = (seconds % 3600) % 60
-
-    times = {"hour": h, "minute": m, "second":s}
-
-    return " and ".join([f"{v} {k}{'s'[:v^1]}" for k, v in times.items() if v])
-
 
 Points.get_instance().init_points()
 client.run(BOT_TOKEN)
