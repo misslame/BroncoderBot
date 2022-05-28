@@ -1,4 +1,4 @@
-import os
+import discord
 import json
 from heapq import nlargest
 
@@ -6,7 +6,23 @@ from heapq import nlargest
 class Points:
     pointMap: dict
 
+    __instance = None
+    pointMap = {}
+
     def __init__(self):
+        if Points.__instance == None:
+            Points.__instance = self
+        else:
+            raise Exception("[ERROR]: Cannot create another instance of class: Points. Singlton implemented.")
+
+    @staticmethod
+    def get_instance():
+        if Points.__instance == None:
+            Points.__instance = Points()    
+        return Points.__instance
+
+
+    def init_points(self):
         try:
             f = open('points_table/pointsData.txt', 'r')
             fileContent: str = f.read()
@@ -25,8 +41,8 @@ class Points:
         f.close()
 
     # adds points
-    def addPoints(self, userID: int, points=1):
-        if not userID in self.pointMap or self.pointMap[userID] == None:
+    def addPoints(self, userID: int , points=1):
+        if not userID in self.pointMap or self.pointMap[user] == None:
             self.pointMap[userID] = 0
         self.pointMap[userID] += points
         self.update()
@@ -41,7 +57,7 @@ class Points:
         return nlargest(amount, self.pointMap, key=self.pointMap.get)
 
     # get points of an individual user
-    def getPoints(self, userID: int):
+    def getPoints(self, userID: int ):
         if not userID in self.pointMap:
             self.pointMap[userID] = 0
         return self.pointMap[userID]

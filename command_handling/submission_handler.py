@@ -33,7 +33,7 @@ async def handle_submission(interaction: discord.Interaction, attachment: discor
             file_contents = submited_file.decode('utf-8')
 
             ''' ** TESTING ** '''
-            await interaction.channel.send(f'File Content is {decoded_file}')
+            await interaction.channel.send(f'File Content is {file_contents}')
 
             #TODO: successful_submission = METHOD_TO_VERIFY(file_contents)
             successful_submission = True
