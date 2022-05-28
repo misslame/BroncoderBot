@@ -40,7 +40,7 @@ async def handle_submission(interaction: discord.Interaction, attachment: discor
         else:
             response_message += f'You indicated a {language} submission, that is not a python file!'
 
-    await interaction.response.send_message(response_message, ephemeral=True)
+    await interaction.followup.send(response_message)
 
     return successful_submission
 
