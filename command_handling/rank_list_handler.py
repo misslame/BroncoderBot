@@ -7,7 +7,7 @@ async def format_rank_list(interaction: discord.Interaction, list : list, top : 
 
         count = 1
         for user in list:
-            response_message += f'{count}.{interaction.client.get_user(int(user)).display_name} [{Points.get_instance().getPoints(user)} point(s)]\n'
+            response_message += f'{count}.{interaction.guild.get_member(int(user)).display_name} [{Points.get_instance().getPoints(user)} point(s)]\n'
 
         return response_message + '```'
     else:

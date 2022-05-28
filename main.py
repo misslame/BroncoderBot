@@ -10,6 +10,7 @@ from command_handling.rank_list_handler import format_rank_list
 from points_table.points import Points
 
 intenderinos = discord.Intents.default()
+intenderinos.members = True
 client = discord.Client(intents=intenderinos)
 tree = app_commands.CommandTree(client)
 
