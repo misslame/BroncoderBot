@@ -3,7 +3,7 @@ import os
 import discord
 from discord import app_commands
 from discord.ext import commands
-from web_handling.selenium import setup, submitAttachmentToLeetcode
+from submission_handling.selenium import setup, submitAttachmentToLeetcode
 
 intenderinos = discord.Intents.default()
 client = discord.Client(intents=intenderinos)
