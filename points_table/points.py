@@ -1,5 +1,6 @@
 import discord
 import json
+from personal_stats.stats import stats, user
 from heapq import nlargest
 
 
@@ -49,6 +50,9 @@ class Points:
             self.pointMap[userID] = 0
         self.pointMap[userID] += points
         self.update()
+
+        #updates personal stats for user
+        stats.get_instance().updatePoints(userID, 1, True)
 
     # clears scores
     def clear(self):

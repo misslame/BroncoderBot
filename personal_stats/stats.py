@@ -52,15 +52,15 @@ class stats:
         return self.population[userID]
 
     def updatePoints(self, userID: int, difficulty: int, first: bool):
-        baseValue, multiplier, firstBonus= 1,2,0
-        if first:
-            firstBonus = 1
+        baseValue, multiplier, firstBonus= 0,1,0
         userID = str(userID)
         user = self.population[userID]
-        user.problemsSolved += 1
-        
-        user.totalPoints += baseValue + difficulty*multiplier + firstBonus
 
+        if first:
+            user.first += 1
+            firstBonus = 1
+        user.problemsSolved += 1
+        user.totalPoints += baseValue + difficulty*multiplier + firstBonus
         if difficulty == "1":
             user.easy += 1
         elif difficulty == "2":
