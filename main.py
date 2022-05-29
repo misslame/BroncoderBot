@@ -32,6 +32,8 @@ async def on_ready():
         * top: Provides the Top given value members.
         * mypoints: Provides how many points you have.
         * first: Compares you with the first place member.
+        * enroll: Enroll yourself in competition reminders.
+        * unenroll: Remove yourself from the competition reminders.
 
 ****************************************************'''
 
@@ -110,14 +112,14 @@ async def first(interaction: discord.Interaction):
     await interaction.response.defer()
     await interaction.followup.send(get_first_stats(interaction))
 
-@tree.command(description="Enroll in competition.")
+@tree.command(description="Enroll yourself in competition reminders.")
 async def enroll(interaction: discord.Integration):
     role = discord.utils.get(interaction.guild.roles, name="Competition Reminders")
     await interaction.user.add_roles(role)
     await interaction.response.send_message(f'Added {interaction.user.mention} to competition')
 
 # only allow people in competitor role to call this
-@tree.command(description="Remove user from the competition reminders")
+@tree.command(description="Remove yourself from the competition reminders.")
 # add error catch to not crash
 async def unenroll(interaction: discord.Integration):
     comp_role = discord.utils.get(interaction.guild.roles, name="Competition Reminders")
