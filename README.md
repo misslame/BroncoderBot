@@ -36,6 +36,8 @@ Test your bot in the test server using the */hello* command in the bots channel
 - Setup a OAuth2 > URL Generator with SCOPES permissions of: guilds, guilds.join, guilds.members.read, bot, and applications.commands
 ![Redirect url](./assets/redirects.jpg)
 ![Scopes permissions](./assets/scopes.jpg)
+- Allow intents in BOT tab
+![Bot Intents](./assets/intents.jpg)
 - In BOT Permissions: Read Messages/View Channels only in General Permissions & select all Text Permissions
 -- UPDATE BOTS PERMS
 ![Bot permissions](./assets/bots.jpg)

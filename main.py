@@ -1,4 +1,3 @@
-from dis import disco
 from token_fetching.token_fetch import BOT_TOKEN
 import os
 import discord
