@@ -11,17 +11,21 @@ import requests
 import time
 from dotenv import load_dotenv
 import os
+from browser_state import *
 
 desired_capabilities = DesiredCapabilities.CHROME
-desired_capabilities["goog:loggingPrefs"] = {"performance": "ALL"}
 timeout = 10
+
+my_browser_state = BrowserState()
 
 driver = webdriver.Chrome(desired_capabilities=desired_capabilities)
 def exit():
     print( "Timed out waiting for page to load")
+    my_browser_state.state = BROKEN
     driver.quit()
 
 def setup():
+    my_browser_state.state = SETTING_UP
     driver.get('https://leetcode.com/accounts/login/?next=/profile/account/')
     try:
         element_present = EC.presence_of_element_located((By.ID, 'signin_btn'))
@@ -58,6 +62,7 @@ def setup():
     driver.find_element(By.CLASS_NAME, "select__3t8J").click()
     driver.find_element(By.XPATH, "//li[contains(text(), 'Python3')]").click()
     driver.execute_script("document.getElementsByClassName(\"btns__1OeZ\")[0].innerHTML += '<textarea id=\"clipboard\" rows=\"4\" cols=\"50\">shit</textarea>'")
+    my_browser_state.state = READY
     
 def typeCode(code):
     clipboard = driver.find_element(By.ID, 'clipboard')
@@ -73,6 +78,7 @@ def typeCode(code):
     actions.key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
     
 def submitAttachmentToLeetcode(attachment):
+    my_browser_state.state = BUSY
     url = str(attachment)
     code = requests.get(url).text
     return submitCode(code)
@@ -112,6 +118,7 @@ def submitCode(code):
     
     driver.execute_script("window.close()")
     driver.switch_to.window(driver.window_handles[0])
+    my_browser_state.state = READY
 
     return {
         "result_state": result_state,
