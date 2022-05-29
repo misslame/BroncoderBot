@@ -1,6 +1,6 @@
 __pycache__/
 token_fetching/token.txt
 .vscode
-points_table/pointsData.txt
-points_table/pointsData.json
+participant_data_handling/pointsData.txt
+participant_data_handling/pointsData.json
 .env

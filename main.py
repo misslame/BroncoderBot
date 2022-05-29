@@ -1,16 +1,14 @@
 import discord
 from discord import app_commands
-from points_table.points import Points
 
 from token_fetching.token_fetch import BOT_TOKEN
 
 # Modules
-from points_table.points import Points
+from participant_data_handling.participant_data import ParticipantData
 from command_handling.submission_handler import handle_submission
 from command_handling.rank_list_handler import format_rank_list
 from command_handling.first_handler import get_first_stats
 from command_handling.timeout_handler import COOLDOWN_SECONDS, readable
-from personal_stats.stats import stats, user
 
 intenderinos = discord.Intents.default()
 intenderinos.members = True
@@ -49,17 +47,18 @@ async def submit(interaction: discord.Interaction, attachment: discord.Attachmen
     await interaction.response.defer()
     successful_submission = await handle_submission(interaction, attachment, language)
     if (successful_submission):
-        # TODO: change to the difficulty value
-        DIFFICULTY_POINT = 1  # TEMPORARY
+        # TODO: THE FOLLOWING ATTRIBUTES
+        DIFFICULTY = "hard"  # TEMPORARY
+        WAS_FIRST_SUBMITION = False
 
-        Points.get_instance().addPoints(interaction.user.id, DIFFICULTY_POINT)
+        ParticipantData.get_instance().update_stats(interaction.user.id,  DIFFICULTY, WAS_FIRST_SUBMITION)
         # TODO: add timestamp
         await interaction.channel.send(
             f'{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point(s)!')
 
         ''' ** TESTING ** '''
         await interaction.channel.send(
-            f'{interaction.user.mention} now has {Points.get_instance().getPoints(interaction.user.id)} point(s)!')
+            f'{interaction.user.mention} now has {ParticipantData.get_instance().get_points(interaction.user.id)} point(s)!')
 
         return
 
@@ -77,35 +76,36 @@ async def testsubmit(interaction: discord.Interaction):
     successful_submission = await handle_submission(interaction, attachment, language)
 
     if (successful_submission):
-        # TODO: change to the difficulty value
-        DIFFICULTY_POINT = 1  # TEMPORARY
+        # TODO: THE FOLLOWING ATTRIBUTES
+        DIFFICULTY = "hard"  # TEMPORARY
+        WAS_FIRST_SUBMITION = False
 
-        Points.get_instance().addPoints(interaction.user.id, DIFFICULTY_POINT)
+        ParticipantData.get_instance().update_stats(interaction.user.id,  DIFFICULTY, WAS_FIRST_SUBMITION)
         # TODO: add timestamp
         await interaction.channel.send(
             f'{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point(s)!')
 
         ''' ** TESTING ** '''
         await interaction.channel.send(
-            f'{interaction.user.mention} now has {Points.get_instance().getPoints(interaction.user.id)} point(s)!')
+            f'{interaction.user.mention} now has {ParticipantData.get_instance().get_points(interaction.user.id)} point(s)!')
 
         return
 
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="provides the Top 10 members.")
 async def top10(interaction: discord.Interaction):
-    await interaction.response.send_message(await format_rank_list(interaction, Points.get_instance().getTop(10), 10))
+    await interaction.response.send_message(await format_rank_list(interaction, ParticipantData.get_instance().get_top(10), 10))
 
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="Provides the Top given value members.")
 @app_commands.describe(value="What number of the top members you want to see")
 async def top(interaction: discord.Interaction, value: int):
-    await interaction.response.send_message(await format_rank_list(interaction, Points.get_instance().getTop(value), value))
+    await interaction.response.send_message(await format_rank_list(interaction, ParticipantData.get_instance().get_top(value), value))
 
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="Provides how many points you have.")
 async def mypoints(interaction: discord.Interaction):
-    await interaction.response.send_message(f'You currently have {Points.get_instance().getPoints(interaction.user.id)} point(s).')
+    await interaction.response.send_message(f'You currently have {ParticipantData.get_instance().get_points(interaction.user.id)} point(s).')
 
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="Compares you with the first place member.")
@@ -114,7 +114,7 @@ async def first(interaction: discord.Interaction):
     await interaction.followup.send(get_first_stats(interaction))
 
 @tree.command(description="Enroll yourself in competition reminders.")
-async def enroll(interaction: discord.Integration):
+async def enroll(interaction: discord.Interaction):
     role = discord.utils.get(interaction.guild.roles, name="Competition Reminders")
     await interaction.user.add_roles(role)
     await interaction.response.send_message(f'Added {interaction.user.mention} to competition')
@@ -122,7 +122,7 @@ async def enroll(interaction: discord.Integration):
 # only allow people in competitor role to call this
 @tree.command(description="Remove yourself from the competition reminders.")
 # add error catch to not crash
-async def unenroll(interaction: discord.Integration):
+async def unenroll(interaction: discord.Interaction):
     comp_role = discord.utils.get(interaction.guild.roles, name="Competition Reminders")
     await interaction.user.remove_roles(comp_role)
     await interaction.response.send_message(f'Removed {interaction.user.mention} from the competition reminders')
@@ -131,10 +131,8 @@ async def unenroll(interaction: discord.Integration):
 async def get_stats(interaction: discord.Interaction):
     await interaction.response.defer()
     
-    stats.get_instance().addUser(interaction.user.id)
-    await interaction.followup.send(f'{interaction.user.mention} stats:' + stats.get_instance().getUser(interaction.user.id).to_String() )
-
-
+    ParticipantData.get_instance().add_participant(interaction.user.id)
+    await interaction.followup.send(f'{interaction.user.mention} stats:' + ParticipantData.get_instance().get_participant_printed_stats(interaction.user.id))
 
 '''******************************************************
     ERROR HANDLING
@@ -144,5 +142,5 @@ async def tree_errors(interaction: discord.Interaction, error: app_commands.AppC
     if isinstance(error, app_commands.CommandOnCooldown):
         await interaction.response.send_message(f"You are on cooldown. Try again in {readable(int(error.cooldown.get_retry_after()))}", ephemeral=True)
 
-Points.get_instance().init_points()
+ParticipantData.get_instance().init_points()
 client.run(BOT_TOKEN)
