@@ -7,6 +7,7 @@ from token_fetching.token_fetch import BOT_TOKEN
 # Modules
 from command_handling.submission_handler import handle_submission
 from command_handling.rank_list_handler import format_rank_list
+from command_handling import admin as admin_commands
 from points_table.points import Points
 
 intenderinos = discord.Intents.default()
@@ -112,4 +113,5 @@ def readable(seconds: int):
 
 
 Points.get_instance().init_points()
+admin_commands.map_commands(tree)
 client.run(BOT_TOKEN)
