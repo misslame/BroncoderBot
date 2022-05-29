@@ -17,6 +17,14 @@ async def on_ready():
 @tree.command()
 async def hello(interaction: discord.Interaction):
     await interaction.response.send_message(f'Hi, {interaction.user.mention}')
+# only allow people in competitor role to call this
+@tree.command(description="Remove user from the competition")
+# add has role to call this method
+# add error catch to not crash
+async def unenroll(interaction: discord.Integration):
+    comp_role = discord.utils.get(interaction.guild.roles, name="Competition Reminders")
+    await interaction.user.remove_roles(comp_role)
+    await interaction.response.send_message(f'Removed {interaction.user.mention} from the competition')
 
 @tree.command()
 @app_commands.describe(attachment="The code to submit")
