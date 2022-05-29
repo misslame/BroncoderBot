@@ -7,10 +7,15 @@ store = PersistentStore.get_instance()
 
 @app_commands.command()
 async def set_admin_role(interaction: discord.Interaction, role: discord.Role):
-    guild_id = interaction.guild_id
-    store_key = str(guild_id) + '_admin_role'
+    guild_id = int(interaction.guild_id)
 
-    store[store_key] = role.id
+    if guild_id not in store:
+        guild_store = store[guild_id] = {}
+    else:
+        guild_store = store[guild_id]
+
+    guild_store['admin_role'] = role.id
+    store.update({guild_id: guild_store})
 
     await interaction.response.send_message(f'Set admin role as {role.mention}', ephemeral=True)
 
