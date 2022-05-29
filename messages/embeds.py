@@ -5,8 +5,10 @@ CHECKMARK_EMOJI = " ✅ "
 CROSS_EMOJI = " ❌ "
 WARNING_EMOJI = " ⚠️ "
 
-def createSubmissionEmbed(title="", uploader_name=None, challenge_name=None, details={}, color=COLOR_NEUTRAL):
+def createSubmissionEmbed(title="", msg=None, uploader_name=None, challenge_name=None, details={}, color=COLOR_NEUTRAL):
     description=""
+    if msg is not None:
+        description += msg + "\n\n"
     if uploader_name is not None:
         description += "**Uploader**: {0}\n".format(uploader_name)
     if challenge_name is not None:
@@ -19,7 +21,6 @@ def createSubmissionEmbed(title="", uploader_name=None, challenge_name=None, det
     if "result_progress" in details:
         result_progress = details["result_progress"]
         result_progress_split = result_progress.split(" / ")
-        print(result_progress_split)
         if len(result_progress_split) == 2:
             num = int(result_progress_split[0])
             den = int(result_progress_split[1])
