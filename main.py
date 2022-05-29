@@ -11,7 +11,7 @@ tree = app_commands.CommandTree(client)
 
 @client.event
 async def on_connect():
-    setup()
+    await setup()
 async def on_ready():
     print(f'Logged in as {client.user} (ID: {client.user.id})')
     await tree.sync()
@@ -24,8 +24,9 @@ async def hello(interaction: discord.Interaction):
 @tree.command()
 @app_commands.describe(attachment="The code to submit")
 async def submit(interaction: discord.Interaction, attachment: discord.Attachment):
+    print("recieved submission")
     await interaction.response.send_message(f'Thanks for uploading {attachment.filename}!', ephemeral=True)
-    await interaction.channel.send(f'The file uploaded was: {attachment.content_type}')
-    await interaction.channel.send(str(submitAttachmentToLeetcode(attachment)))
+    await interaction.followup.send(f'The file uploaded was: {attachment.content_type}', ephemeral=True)
+    await interaction.followup.send(str(await submitAttachmentToLeetcode(attachment)), ephemeral=True)
 
 client.run(BOT_TOKEN)

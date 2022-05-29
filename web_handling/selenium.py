@@ -11,7 +11,8 @@ import requests
 import time
 from dotenv import load_dotenv
 import os
-from browser_state import *
+from web_handling.browser_state import *
+import asyncio
 
 desired_capabilities = DesiredCapabilities.CHROME
 timeout = 10
@@ -24,7 +25,7 @@ def exit():
     my_browser_state.state = BROKEN
     driver.quit()
 
-def setup():
+async def setup():
     my_browser_state.state = SETTING_UP
     driver.get('https://leetcode.com/accounts/login/?next=/profile/account/')
     try:
@@ -64,7 +65,7 @@ def setup():
     driver.execute_script("document.getElementsByClassName(\"btns__1OeZ\")[0].innerHTML += '<textarea id=\"clipboard\" rows=\"4\" cols=\"50\">shit</textarea>'")
     my_browser_state.state = READY
     
-def typeCode(code):
+async def typeCode(code):
     clipboard = driver.find_element(By.ID, 'clipboard')
     clipboard.click()
     actions = ActionChains(driver)
@@ -77,22 +78,28 @@ def typeCode(code):
     actions.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
     actions.key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
     
-def submitAttachmentToLeetcode(attachment):
-    my_browser_state.state = BUSY
+
+
+async def submitAttachmentToLeetcode(attachment):
+    if my_browser_state.state == BUSY:
+        return {"msg": "Broncoder is currently busy. Eventually we'll add a queue system, but try again later"}
+    if my_browser_state.state == SETTING_UP:
+        return {"msg": "Broncoder is currently setting up. Please try again in a couple of seconds"}
     url = str(attachment)
     code = requests.get(url).text
-    return submitCode(code)
+    return await submitCode(code)
 
-def submitCode(code):
+async def submitCode(code):
+    my_browser_state.state = BUSY
     print("attempting submission")
-    typeCode(code)
+    await typeCode(code)
     driver.find_element(By.XPATH, '//button[@data-cy="submit-code-btn"]').click()
     try:
         element_present = EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Pending')]"))
         WebDriverWait(driver, timeout).until(element_present)
     except TimeoutException:
         exit()
-    time.sleep(3)
+    await asyncio.sleep(5)
     try:
         element_present = EC.presence_of_element_located((By.XPATH, "//a[starts-with(@href, '/submissions/detail')]"))
         WebDriverWait(driver, timeout).until(element_present)
@@ -122,5 +129,6 @@ def submitCode(code):
 
     return {
         "result_state": result_state,
-        "result_progress": result_progress
+        "result_progress": result_progress,
+        "msg": "Submission to leetcode.com successful"
     }
