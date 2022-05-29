@@ -40,45 +40,60 @@ async def hello(interaction: discord.Interaction):
     await interaction.response.send_message(f'Hi, {interaction.user.mention}')
 
 
+@tree.command(description="Enroll in competition.")
+async def enroll(interaction: discord.Integration):
+    role = discord.utils.get(interaction.guild.roles, name="Competition Reminders")
+    await interaction.user.add_roles(role)
+    await interaction.response.send_message(f'Added {interaction.user.mention} to competition')
+
+
 @tree.command(description="Submit your code.")
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @app_commands.describe(attachment="The code to submit", language="progamming language")
 async def submit(interaction: discord.Interaction, attachment: discord.Attachment, language: str):
     await interaction.response.defer()
     successful_submission = await handle_submission(interaction, attachment, language)
-    if(successful_submission):
+    if (successful_submission):
         # TODO: change to the difficulty value
         DIFFICULTY_POINT = 1  # TEMPORARY
 
         Points.get_instance().addPoints(interaction.user.id, DIFFICULTY_POINT)
         # TODO: add timestamp
-        await interaction.channel.send(f'{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point(s)!')
+        await interaction.channel.send(
+            f'{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point(s)!')
 
         ''' ** TESTING ** '''
-        await interaction.channel.send(f'{interaction.user.mention} now has {Points.get_instance().getPoints(interaction.user.id)} point(s)!')
+        await interaction.channel.send(
+            f'{interaction.user.mention} now has {Points.get_instance().getPoints(interaction.user.id)} point(s)!')
 
         return
+
 
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="Test Submit Command.")
 async def testsubmit(interaction: discord.Interaction):
     await interaction.response.defer(ephemeral=True)
-    data = {'filename': 'TEST.py', 'id': 980005177400643624, 'proxy_url': 'https://cdn.discordapp.com/attachments/979971398753742859/980005541902430238/TEST.py', 'size': 17,
-            'url': 'https://cdn.discordapp.com/attachments/979971398753742859/980005541902430238/TEST.py', 'spoiler': False, 'content_type': 'text/x-python; charset=utf-8'}
+    data = {'filename': 'TEST.py', 'id': 980005177400643624,
+            'proxy_url': 'https://cdn.discordapp.com/attachments/979971398753742859/980005541902430238/TEST.py',
+            'size': 17,
+            'url': 'https://cdn.discordapp.com/attachments/979971398753742859/980005541902430238/TEST.py',
+            'spoiler': False, 'content_type': 'text/x-python; charset=utf-8'}
     attachment, language = discord.Attachment(
         data=data, state=interaction.client._get_state()), "python"
     successful_submission = await handle_submission(interaction, attachment, language)
 
-    if(successful_submission):
+    if (successful_submission):
         # TODO: change to the difficulty value
         DIFFICULTY_POINT = 1  # TEMPORARY
 
         Points.get_instance().addPoints(interaction.user.id, DIFFICULTY_POINT)
         # TODO: add timestamp
-        await interaction.channel.send(f'{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point(s)!')
+        await interaction.channel.send(
+            f'{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point(s)!')
 
         ''' ** TESTING ** '''
-        await interaction.channel.send(f'{interaction.user.mention} now has {Points.get_instance().getPoints(interaction.user.id)} point(s)!')
+        await interaction.channel.send(
+            f'{interaction.user.mention} now has {Points.get_instance().getPoints(interaction.user.id)} point(s)!')
 
         return
 
