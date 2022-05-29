@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 import os
 from submission_handling.browser_state import *
 import asyncio
+import copy
 
 desired_capabilities = DesiredCapabilities.CHROME
 timeout = 10
@@ -21,6 +22,14 @@ my_browser_state = BrowserState()
 options = webdriver.ChromeOptions()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
 driver = webdriver.Chrome(desired_capabilities=desired_capabilities, options=options)
+
+response_dict_base = {
+        "msg": None,
+        "err": False,
+        "details":{
+        }
+    }
+
 def exit():
     print( "Timed out waiting for page to load")
     my_browser_state.state = BROKEN
@@ -61,7 +70,7 @@ async def setup():
     except TimeoutException:
         exit()
 
-    driver.find_element(By.CLASS_NAME, "select__3t8J").click()
+    driver.find_element(By.XPATH, "//*[@data-cy='lang-select']").click()
     driver.find_element(By.XPATH, "//li[contains(text(), 'Python3')]").click()
     driver.execute_script("document.getElementsByClassName(\"btns__1OeZ\")[0].innerHTML += '<textarea id=\"clipboard\" rows=\"4\" cols=\"50\">shit</textarea>'")
     my_browser_state.state = READY
@@ -83,14 +92,15 @@ async def typeCode(code):
 
 async def submitAttachmentToLeetcode(attachment):
     if my_browser_state.state == BUSY:
-        return {"msg": "Broncoder is currently busy. Eventually we'll add a queue system, but try again later"}
+        return {"msg": "Broncoder is currently busy. Eventually we'll add a queue system, but try again later", "err": True}
     if my_browser_state.state == SETTING_UP:
-        return {"msg": "Broncoder is currently setting up. Please try again in a couple of seconds"}
+        return {"msg": "Broncoder is currently setting up. Please try again in a couple of seconds", "err": True}
     url = str(attachment)
     code = requests.get(url).text
     return await submitCode(code)
 
 async def submitCode(code):
+    response_dict = copy.deepcopy(response_dict_base)
     my_browser_state.state = BUSY
     print("attempting submission")
     await typeCode(code)
@@ -119,17 +129,18 @@ async def submitCode(code):
     except TimeoutException:
         exit()
     
-    result_state = driver.find_element(By.ID, "result_state").get_attribute("innerText")
-    print(result_state)
-    result_progress = driver.find_element(By.ID, "result_progress").get_attribute("innerText")
-    print(result_progress)
+    response_dict["details"]["result_state"] = driver.find_element(By.ID, "result_state").get_attribute("innerText")
+    print(response_dict["details"]["result_state"])
+    if response_dict["details"]["result_state"] == "Accepted":
+        response_dict["details"]["result_memory"] = driver.find_element(By.ID, "result_memory").get_attribute("innerText")
+        response_dict["details"]["result_runtime"] = driver.find_element(By.ID, "result_runtime").get_attribute("innerText")
+    response_dict["details"]["result_progress"] = driver.find_element(By.ID, "result_progress").get_attribute("innerText")
+    print(response_dict["details"]["result_progress"])
     
     driver.execute_script("window.close()")
     driver.switch_to.window(driver.window_handles[0])
     my_browser_state.state = READY
 
-    return {
-        "result_state": result_state,
-        "result_progress": result_progress,
-        "msg": "Submission to leetcode.com successful"
-    }
+    response_dict["msg"] = "Submission to leetcode.com completed"
+    response_dict["err"] = False
+    return response_dict
