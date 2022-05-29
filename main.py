@@ -10,6 +10,7 @@ from command_handling.submission_handler import handle_submission
 from command_handling.rank_list_handler import format_rank_list
 from command_handling.first_handler import get_first_stats
 from command_handling.timeout_handler import COOLDOWN_SECONDS, readable
+from personal_stats.stats import stats, user
 
 intenderinos = discord.Intents.default()
 intenderinos.members = True
@@ -125,6 +126,15 @@ async def unenroll(interaction: discord.Integration):
     comp_role = discord.utils.get(interaction.guild.roles, name="Competition Reminders")
     await interaction.user.remove_roles(comp_role)
     await interaction.response.send_message(f'Removed {interaction.user.mention} from the competition reminders')
+
+@tree.command(description="Display your personal stats")
+async def get_stats(interaction: discord.Interaction):
+    await interaction.response.defer()
+    
+    stats.get_instance().addUser(interaction.user.id)
+    await interaction.followup.send(f'{interaction.user.mention} stats:' + stats.get_instance().getUser(interaction.user.id).to_String() )
+
+
 
 '''******************************************************
     ERROR HANDLING

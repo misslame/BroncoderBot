@@ -11,15 +11,23 @@ class user:
         self.won = 0
         self.first = 0
 
-    def toString(self):
-        pass
+    def to_String(self):
+        result = "\ntotalPoints: " + str(self.totalPoints)
+        result += "\nproblems solved: " + str(self.problemsSolved)
+        result += "\nEasy problems solved: " + str(self.easy)
+        result += "\nMedium problems solved: "  + str(self.medium)
+        result += "\nhard problems solved: " + str(self.hard)
+        result += "\nCompetitions won: " + str(self.won)
+        result += "\nfirst submissions: " + str(self.first)
+        return result
+
 
 #make a dictionary using user name as a key
 #write to file? to store if bot crashes
 class stats:
     population: dict
     population = {}
-
+    __instance = None
     #ripped from points.py
     def __init__(self):
         if stats.__instance == None:
@@ -34,6 +42,7 @@ class stats:
         return stats.__instance
 
     def addUser(self, userID: int): #add user upon getting role / leave stats if role removed?
+        print("hello")
         userID = str(userID)
         if self.population.get(userID) == None:
             self.population[userID] = user()
@@ -59,3 +68,6 @@ class stats:
         elif difficulty == "3":
             user.hard += 1
         
+    def updateWin(self, userID: int):
+        userID = str(userID)
+        self.population[userID].win += 1
