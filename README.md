@@ -43,6 +43,7 @@ Test your bot in the test server using the */hello* command in the bots channel
 ![Bot permissions](./assets/bots.jpg)
 - Copy and paste the generated URL on your browser then select our test server
 - Create your .env file and paste your Bot TOKEN (found in the Bot tab) as
+- If you need to change these permissions kick your bot and restart the process
 
 > BOT_TOKEN=XYZ
 
