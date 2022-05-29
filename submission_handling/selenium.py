@@ -65,10 +65,18 @@ async def setup():
     driver.get("https://leetcode.com/problems/two-sum/")
 
     try:
-        element_present = EC.presence_of_element_located((By.CLASS_NAME, 'CodeMirror-lines'))
+        element_present = EC.invisibility_of_element((By.ID, 'initial-loading'))
         WebDriverWait(driver, timeout).until(element_present)
     except TimeoutException:
         exit()
+        
+    try:
+        element_present = EC.presence_of_element_located((By.XPATH, '//*[contains(text(), "Got it!")]'))
+        WebDriverWait(driver, timeout).until(element_present)
+        driver.find_element(By.XPATH, '//*[contains(text(), "Got it!")]').click()
+    except TimeoutException:
+        pass
+    
 
     driver.find_element(By.XPATH, "//*[@data-cy='lang-select']").click()
     driver.find_element(By.XPATH, "//li[contains(text(), 'Python3')]").click()
