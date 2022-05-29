@@ -11,7 +11,7 @@ import requests
 import time
 from dotenv import load_dotenv
 import os
-from web_handling.browser_state import *
+from submission_handling.browser_state import *
 import asyncio
 
 desired_capabilities = DesiredCapabilities.CHROME
