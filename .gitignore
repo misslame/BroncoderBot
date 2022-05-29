@@ -2,3 +2,4 @@
 token_fetching/token.txt
 .vscode
 points_table/pointsData.txt
+.env
