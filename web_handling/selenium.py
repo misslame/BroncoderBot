@@ -9,6 +9,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 import requests
 import time
+from dotenv import load_dotenv
+import os
 
 desired_capabilities = DesiredCapabilities.CHROME
 desired_capabilities["goog:loggingPrefs"] = {"performance": "ALL"}
@@ -26,9 +28,10 @@ def setup():
         WebDriverWait(driver, timeout).until(element_present)
     except TimeoutException:
         exit()
-
-    driver.find_element(By.ID, "id_login").send_keys("cppcsaccount")
-    driver.find_element(By.ID, "id_password").send_keys("billybronc0")
+    
+    load_dotenv()
+    driver.find_element(By.ID, "id_login").send_keys(os.environ.get("LEETCODE_USERNAME"))
+    driver.find_element(By.ID, "id_password").send_keys(os.environ.get("LEETCODE_PASSWORD"))
 
     try:
         element_not_present = EC.invisibility_of_element((By.ID, 'initial-loading'))
