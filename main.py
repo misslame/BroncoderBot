@@ -36,6 +36,7 @@ async def enroll(interaction: discord.Integration):
 
 
 @tree.command(description="Submit your code.")
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @app_commands.describe(attachment="The code to submit", language="progamming language")
 async def submit(interaction: discord.Interaction, attachment: discord.Attachment, language: str):
     await interaction.response.defer()
@@ -46,10 +47,6 @@ async def submit(interaction: discord.Interaction, attachment: discord.Attachmen
 
         Points.get_instance().addPoints(interaction.user.id, DIFFICULTY_POINT)
         # TODO: add timestamp
-
-        # check cooldown
-        # app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
-
         await interaction.channel.send(
             f'{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point(s)!')
 
@@ -58,6 +55,7 @@ async def submit(interaction: discord.Interaction, attachment: discord.Attachmen
             f'{interaction.user.mention} now has {Points.get_instance().getPoints(interaction.user.id)} point(s)!')
 
         return
+
 
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="Test Submit Command.")
