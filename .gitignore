@@ -4,3 +4,5 @@ token_fetching/token.txt
 points_table/pointsData.txt
 points_table/pointsData.json
 .env
+.idea/
+.venv/
