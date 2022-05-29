@@ -18,8 +18,9 @@ desired_capabilities = DesiredCapabilities.CHROME
 timeout = 10
 
 my_browser_state = BrowserState()
-
-driver = webdriver.Chrome(desired_capabilities=desired_capabilities)
+options = webdriver.ChromeOptions()
+options.add_experimental_option('excludeSwitches', ['enable-logging'])
+driver = webdriver.Chrome(desired_capabilities=desired_capabilities, options=options)
 def exit():
     print( "Timed out waiting for page to load")
     my_browser_state.state = BROKEN
