@@ -2,6 +2,8 @@ import json
 from participant_data_handling.participant import Participant
 from heapq import nlargest
 
+'''to do: try to fix the json file. we are having trouble writing
+        : if json works, we can try to implement a database'''
 '''************************************************************
     CLASS: ParticipantData:
     Handle Particpant information during & after competition. 
@@ -86,10 +88,12 @@ class ParticipantData:
         self.update_files()
 
     #TODO: Add functionality for participant data
+    #https://stackoverflow.com/questions/21453117/json-dumps-not-working
     # updates file (idk im just calling it everytime there's a change just in case the bot crashes)
     def update_files(self):
         with open('participant_data_handling/participantStats.json', 'w') as f:
-            (json.dump(self.participants_stats, indent=2))
+            #f.write(json.dumps(self.participants_stats, indent=2))
+            json.dump({'participant_stats':self.participants_stats}, f, indent = 2)
 
     # clears current scores
     def clear(self):

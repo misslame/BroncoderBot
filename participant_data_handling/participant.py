@@ -1,5 +1,7 @@
 import json
 class Participant:
+    #custom classes must be converted to dictionary or list to be serializable
+    
     def __init__(self) -> None:
         self.points = 0
         self.total_points = 0
