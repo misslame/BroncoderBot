@@ -33,7 +33,7 @@ def exit():
     my_browser_state.state = BROKEN
     driver.quit()
 
-async def setup():
+async def setup(question):
     my_browser_state.state = SETTING_UP
     driver.get('https://leetcode.com/accounts/login/?next=/profile/account/')
     try:
@@ -60,7 +60,7 @@ async def setup():
     except TimeoutException:
         exit()
 
-    driver.get("https://leetcode.com/problems/two-sum/")
+    driver.get("https://leetcode.com/problems/{}".format(question.get("titleSlug")))
 
     try:
         element_present = EC.invisibility_of_element((By.ID, 'initial-loading'))
