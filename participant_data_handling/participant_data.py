@@ -38,11 +38,15 @@ class ParticipantData:
         with open('participant_data_handling/participantStats.json', 'r') as f:
             fileContent: str = f.read()
             
-        if fileContent == "":
-            self.participants_stats= {}
+
+        self.participants_stats= {}
             
-        else:
-            self.participants_stats = json.loads(fileContent)
+        if fileContent:
+            raw_stats: dict = json.loads(fileContent).get("participant_stats", {})
+
+            for k, v in raw_stats.items():
+                self.participants_stats[k] = Participant(**v)
+
 
     '''
     """NOT FOR PUBLIC USE: internal method only. """

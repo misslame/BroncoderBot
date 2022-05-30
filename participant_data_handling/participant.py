@@ -2,16 +2,16 @@ import json
 class Participant:
     #custom classes must be converted to dictionary or list to be serializable
     
-    def __init__(self) -> None:
-        self.points = 0
-        self.total_points = 0
-        self.problems_solved = 0 #also days committed
-        self.easy = 0
-        self.medium = 0
-        self.hard = 0
-        self.won = 0
-        self.first = 0
-
+    def __init__(self, points = 0, total_points = 0, problems_solved = 0, easy = 0, medium = 0, hard = 0, won = 0, first = 0) -> None:
+        self.points = points
+        self.total_points = total_points
+        self.problems_solved = problems_solved #also days committed
+        self.easy = easy
+        self.medium = medium
+        self.hard = hard
+        self.won = won
+        self.first = first
+        
     def toJSON(self):
         return json.dumps(self, default=lambda x: x.__dict__, sort_keys=True, indent=2)
 

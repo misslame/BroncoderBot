@@ -1,3 +1,5 @@
+import sys
+import traceback
 import discord
 from discord import app_commands
 
@@ -66,7 +68,7 @@ async def submit(interaction: discord.Interaction, attachment: discord.Attachmen
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="Test Submit Command.")
 async def testsubmit(interaction: discord.Interaction):
-    await interaction.response.defer(ephemeral=True)
+    await interaction.response.defer()
     data = {'filename': 'TEST.py', 'id': 980005177400643624,
             'proxy_url': 'https://cdn.discordapp.com/attachments/979971398753742859/980005541902430238/TEST.py',
             'size': 17,
@@ -143,6 +145,9 @@ async def get_stats(interaction: discord.Interaction):
 async def tree_errors(interaction: discord.Interaction, error: app_commands.AppCommandError):
     if isinstance(error, app_commands.CommandOnCooldown):
         await interaction.response.send_message(f"You are on cooldown. Try again in {readable(int(error.cooldown.get_retry_after()))}", ephemeral=True)
+    else:
+        print('Ignoring exception in command {}:'.format(interaction.command), file=sys.stderr)
+        traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 ParticipantData.get_instance().init_points()
 client.run(BOT_TOKEN)
