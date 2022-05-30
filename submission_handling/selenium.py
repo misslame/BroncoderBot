@@ -1,4 +1,3 @@
-from cgitb import text
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
@@ -8,7 +7,6 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 import requests
-import time
 from dotenv import load_dotenv
 import os
 from submission_handling.browser_state import *
