@@ -100,6 +100,8 @@ async def tree_errors(interaction: discord.Interaction, error: app_commands.AppC
     if isinstance(error, app_commands.CommandOnCooldown):
         await interaction.response.send_message(
             f"You are on cooldown. Try again in {readable(int(error.cooldown.get_retry_after()))}", ephemeral=True)
+    else:
+        print(error)
 
 
 def readable(seconds: int):

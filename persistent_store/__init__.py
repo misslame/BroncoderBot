@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import copy, deepcopy
 import json
 from os.path import isfile
 
@@ -28,6 +28,9 @@ class PersistentStore:
         return PersistentStore.__instance
 
     def __getitem__(self, key):
+        if type(key) is int:
+            key = str(key)
+
         # Ensure the user cannot externally modify internal dict state
         if key in self:
             return deepcopy(self.__store[key])
@@ -35,18 +38,38 @@ class PersistentStore:
         raise KeyError()
 
     def __setitem__(self, key, value):
+        if type(key) is int:
+            key = str(key)
+
         # Ensure we don't have a reference to the original value
         self.__store[key] = deepcopy(value)
         self.sync()
 
     def __contains__(self, key):
+        if type(key) is int:
+            key = str(key)
+
         return key in self.__store
 
-    def update(self, *args, **kwargs):
-        self.__store.update(*args, **kwargs)
+    def update(self, data):
+        def __clean_keys(dic):
+            for k, v in list(dic.items()):
+                if type(k) is int:
+                    if str(k) in dic:
+                        raise Exception(f'Duplicate keys in dict: {str(k)}')
+
+                    dic[str(k)] = v
+                    del dic[k]
+
+                if type(v) is dict:
+                    __clean_keys(v)
+
+        __clean_keys(data)
+        self.__store.update(data)
         self.sync()
 
     def sync(self):
         self.__f.seek(0)
         json.dump(self.__store, self.__f)
+        self.__f.truncate()
         self.__f.flush()

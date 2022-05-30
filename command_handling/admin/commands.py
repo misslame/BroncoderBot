@@ -7,7 +7,7 @@ store = PersistentStore.get_instance()
 
 @app_commands.command()
 async def set_admin_role(interaction: discord.Interaction, role: discord.Role):
-    guild_id = int(interaction.guild_id)
+    guild_id = interaction.guild_id
 
     if guild_id not in store:
         guild_store = store[guild_id] = {}
