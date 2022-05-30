@@ -2,7 +2,6 @@ import requests
 from html2image import Html2Image
 
 endpoint = "https://leetcode.com/graphql"
-hti = Html2Image()
 
 EASY_DIFFICULTY = "EASY"
 MEDIUM_DIFFICULTY = "MEDIUM"
