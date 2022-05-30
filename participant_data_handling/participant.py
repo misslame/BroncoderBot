@@ -1,6 +1,7 @@
-
+import json
 class Participant:
     def __init__(self) -> None:
+        self.points = 0
         self.total_points = 0
         self.problems_solved = 0 #also days committed
         self.easy = 0
@@ -8,6 +9,9 @@ class Participant:
         self.hard = 0
         self.won = 0
         self.first = 0
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda x: x.__dict__, sort_keys=True, indent=2)
 
     def to_string(self):
         result = "\ntotal_points: " + str(self.total_points)
@@ -19,6 +23,12 @@ class Participant:
         result += "\nfirst submissions: " + str(self.first)
         return result
 
+    def get_points(self):
+        return self.points
+
+    def clear_points(self):
+        self.points = 0
+
     def update_win(self):
         self.won += 1
 
@@ -29,7 +39,8 @@ class Participant:
             self.medium += 1
         elif(difficulty == 'easy'):
             self.easy += 1
-
+        
+        self.points += points_recieved
         self.problems_solved += 1
         self.total_points += points_recieved
         self.first += 1 if was_first else 0

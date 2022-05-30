@@ -50,11 +50,12 @@ async def submit(interaction: discord.Interaction, attachment: discord.Attachmen
         # TODO: THE FOLLOWING ATTRIBUTES
         DIFFICULTY = "hard"  # TEMPORARY
         WAS_FIRST_SUBMITION = False
+        POINTS_RECIEVED = 3
 
-        ParticipantData.get_instance().update_stats(interaction.user.id,  DIFFICULTY, WAS_FIRST_SUBMITION)
+        ParticipantData.get_instance().update_stats(interaction.user.id,  DIFFICULTY, POINTS_RECIEVED, WAS_FIRST_SUBMITION)
         # TODO: add timestamp
         await interaction.channel.send(
-            f'{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point(s)!')
+            f'{interaction.user.mention} has submited their solution and recieved {POINTS_RECIEVED} point(s)!')
 
         ''' ** TESTING ** '''
         await interaction.channel.send(
@@ -79,11 +80,12 @@ async def testsubmit(interaction: discord.Interaction):
         # TODO: THE FOLLOWING ATTRIBUTES
         DIFFICULTY = "hard"  # TEMPORARY
         WAS_FIRST_SUBMITION = False
+        POINTS_RECIEVED = 3
 
-        ParticipantData.get_instance().update_stats(interaction.user.id,  DIFFICULTY, WAS_FIRST_SUBMITION)
+        ParticipantData.get_instance().update_stats(interaction.user.id,  DIFFICULTY, POINTS_RECIEVED,  WAS_FIRST_SUBMITION)
         # TODO: add timestamp
         await interaction.channel.send(
-            f'{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point(s)!')
+            f'{interaction.user.mention} has submited their solution and recieved {POINTS_RECIEVED} point(s)!')
 
         ''' ** TESTING ** '''
         await interaction.channel.send(

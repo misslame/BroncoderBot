@@ -9,12 +9,8 @@ from heapq import nlargest
 class ParticipantData:
 
     # Static Member: participants - holds participant stats
-    particpants_stats: dict
-    particpants_stats = {} # Participants
-
-    # Static Member: point_map - hold points of the competition
-    point_map: dict
-    point_map = {}
+    participants_stats: dict
+    participants_stats = {} # Participants
 
     # Singleton requirement: Static Instance representing the class
     __instance = None
@@ -34,18 +30,19 @@ class ParticipantData:
 
     def init_points(self):
         # create file if doesnt exist
-        with open('participant_data_handling/pointsData.json', 'a+') as f:
+        with open('participant_data_handling/participantStats.json', 'a+') as f:
             pass
 
-        with open('participant_data_handling/pointsData.json', 'r') as f:
+        with open('participant_data_handling/participantStats.json', 'r') as f:
             fileContent: str = f.read()
             
         if fileContent == "":
-            self.pointMap = {}
+            self.participants_stats= {}
             
         else:
-            self.pointMap = json.loads(fileContent)
+            self.participants_stats = json.loads(fileContent)
 
+    '''
     """NOT FOR PUBLIC USE: internal method only. """
     def __add_points(self, userID: int , points=1):
         userID = str(userID)
@@ -56,46 +53,48 @@ class ParticipantData:
 
         #updates personal stats for participant
         #self.updatePoints(userID, points, True)
+    '''
 
     def add_participant(self, userID: int): #add participant upon getting role / leave stats if role removed?
-        print("hello")
         userID = str(userID)
-        if self.particpants_stats.get(userID) == None:
-            self.particpants_stats[userID] = Participant()
+        if self.participants_stats.get(userID) == None:
+            self.participants_stats[userID] = Participant()
 
     def get_participant_printed_stats(self, userID: int):
         userID = str(userID)
-        return self.particpants_stats[userID].to_string()
+        return self.participants_stats[userID].to_string()
 
     # get top scores
     def get_top(self, amount=20) -> list[int]:
-        return nlargest(amount, self.pointMap, key=self.pointMap.get)
-
+        return nlargest(amount, self.participants_stats, key=lambda x: self.participants_stats[x].points)
 
     # get points of an individual user
     def get_points(self, userID: int ):
         userID = str(userID)
-        if self.pointMap.get(userID) == None:
-            self.pointMap[userID] = 0
-        return self.pointMap[userID]
+        if self.participants_stats.get(userID) == None:
+            self.add_participant(userID)
+        return self.participants_stats[userID].get_points()
     
     def update_win_stats(self, userID: int):
-        self.particpants_stats[userID].update_win()
+        self.participants_stats[userID].update_win()
 
     def update_stats(self, userID: int, difficulty: str, points_recieved: int, was_first: bool):
-        self.__add_points(userID, points_recieved)
-        self.particpants_stats[userID].update_stats(difficulty, points_recieved, was_first)
+        userID = str(userID)
+        if self.participants_stats.get(userID) == None:
+            self.add_participant(userID)
+        self.participants_stats[userID].update_stats(difficulty, points_recieved, was_first)
+        self.update_files()
 
     #TODO: Add functionality for participant data
     # updates file (idk im just calling it everytime there's a change just in case the bot crashes)
-    def update_file(self):
-        with open('points_table/pointsData.json', 'w') as f:
-            f.write(json.dumps(self.pointMap, indent=2))
+    def update_files(self):
+        with open('participant_data_handling/participantStats.json', 'w') as f:
+            (json.dump(self.participants_stats, indent=2))
 
     # clears current scores
     def clear(self):
-        self.pointMap = {}
-        self.update_file()
+        self.participants_stats = {k.clear_points() for k, v in self.participants_stats.items()}
+        self.update_files()
 
     '''  Don't think we need this handled here. Moved.
     def update_points(self, userID: int, difficulty: int, first: bool):
