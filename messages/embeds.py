@@ -46,6 +46,18 @@ def createSubmissionEmbed(title="", msg=None, uploader_name=None, challenge_name
     
     return embed
 
+def createProblemEmbed(question):
+    embed = discord.Embed(title=question.get("title"), color=0xff00ff, url="https://leetcode.com/problems/{}/".format(question["titleSlug"]))
+    embed.add_field(name="Difficulty", value=question.get("difficulty"), inline=True)
+    embed.add_field(name="Category", value=question.get("categoryTitle"), inline=True)
+    embed.set_footer(text = "use /submit to upload your answer")
+    tags = question.get("topicTags")
+    tag_str = ""
+    for tag in tags:
+        tag_str += "• " + tag.get("name") + "\n"
+    embed.add_field(name="Tags", value=tag_str, inline=False)
+    return embed
+
 
 
     
