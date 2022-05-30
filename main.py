@@ -1,5 +1,9 @@
+import asyncio
+from datetime import datetime, time, timedelta
 import discord
 from discord import app_commands
+from discord.ext import tasks
+
 from points_table.points import Points
 
 from token_fetching.token_fetch import BOT_TOKEN
@@ -18,6 +22,7 @@ tree = app_commands.CommandTree(client)
 
 @client.event
 async def on_ready():
+    client.loop.create_task(called_once_a_day())
     print(f'Logged in as {client.user} (ID: {client.user.id})')
     await tree.sync()
     print('-------------------------------------')
@@ -141,6 +146,39 @@ async def stopreminders_error(interaction: discord.Interaction, error: app_comma
 async def tree_errors(interaction: discord.Interaction, error: app_commands.AppCommandError):
     if isinstance(error, app_commands.CommandOnCooldown):
         await interaction.response.send_message(f"You are on cooldown. Try again in {readable(int(error.cooldown.get_retry_after()))}", ephemeral=True)
+
+'''******************************************************
+    ANNOUNCEMENT HANDLING
+******************************************************'''
+
+target_channel_id = 833465079559094312
+WHEN = time(23, 34, 0)
+
+today = datetime.now()
+
+
+@tasks.loop(minutes=1)
+async def called_once_a_day():
+    global today
+    today = today.replace(hour=22, minute=30, second=0)
+    now = datetime.utcnow()
+    message_channel = client.get_channel(target_channel_id)
+    if now > today:
+        print("now>today")
+        await message_channel.send("useless scheduled announcement")
+        today + timedelta(days=1)
+    print(f"Got channel {message_channel}")
+    await message_channel.send("useless scheduled announcement")
+
+
+@called_once_a_day.before_loop
+async def before():
+    now = datetime.utcnow()
+    target_time = datetime.combine(now.date(), WHEN)
+    seconds_until_target = (target_time - now).total_seconds()
+    await asyncio.sleep(seconds_until_target)
+    await client.wait_until_ready()
+    print("Finished waiting")
 
 Points.get_instance().init_points()
 client.run(BOT_TOKEN)
