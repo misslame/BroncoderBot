@@ -10,7 +10,7 @@ HARD_DIFFICULTY = "HARD"
 RANDOM_DIFFICLUTY= "RANDOM"
 
 # add async later
-def getRandomQuestion(difficulty=RANDOM_DIFFICLUTY, skip_paid = True):
+async def getRandomQuestion(difficulty=RANDOM_DIFFICLUTY, skip_paid = True):
     query = """
     query randomQuestion($categorySlug: String, $filters: QuestionListFilterInput) 
     {
