@@ -1,14 +1,25 @@
 import requests
+from html2image import Html2Image
 
 endpoint = "https://leetcode.com/graphql"
+hti = Html2Image()
+
+EASY_DIFFICULTY = "EASY"
+MEDIUM_DIFFICULTY = "MEDIUM"
+HARD_DIFFICULTY = "HARD"
+RANDOM_DIFFICLUTY= "RANDOM"
 
 # add async later
-def getRandomQuestion():
+def getRandomQuestion(difficulty=RANDOM_DIFFICLUTY, skip_paid = True):
     query = """
-    query randomQuestion($categorySlug: String, $filters: QuestionListFilterInput) {
+    query randomQuestion($categorySlug: String, $filters: QuestionListFilterInput) 
+    {
         randomQuestion(categorySlug: $categorySlug, filters: $filters) {
-            titleSlug
+            categoryTitle
             questionId
+            difficulty
+            isPaidOnly
+            titleSlug
             title
             translatedTitle
             codeDefinition
@@ -18,12 +29,8 @@ def getRandomQuestion():
             likes
             dislikes
             similarQuestions
-            submitUrl
             topicTags {
                 name
-                slug
-                translatedName
-                __typename
             }
             codeSnippets {
                 lang
@@ -43,11 +50,21 @@ def getRandomQuestion():
     variables={
         "categorySlug": "", 
         "filters": {
-            "difficulty": "MEDIUM"
+
         }
     }
-    res = requests.get(endpoint, json={'query': query , 'variables': variables})
+    if difficulty != RANDOM_DIFFICLUTY:
+        variables["filters"]["difficulty"] = difficulty
+    def get():
+        res = requests.get(endpoint, json={'query': query , 'variables': variables}).json()
+        if res["data"]["randomQuestion"]["isPaidOnly"] and skip_paid:
+            print("got paid question, retrying...")
+            res = get()
+        return res
+    
     # print(res.json()["data"]["randomQuestion"]["titleSlug"])
-    print(res.json())
+    return get()["data"]["randomQuestion"]
 
-getRandomQuestion()
+# def getProblemImage(content):
+#     hti.screenshot(html_str=content,css_str = "body {background: white;font-family: Arial;}", save_as='test.jpg', size=(1920,1080))
+    
