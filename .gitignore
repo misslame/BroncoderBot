@@ -1,6 +1,5 @@
 __pycache__/
-token_fetching/token.txt
 .vscode
-participant_data_handling/participantStats.txt
-participant_data_handling/participantStats.json
 .env
+*.json
+*.txt

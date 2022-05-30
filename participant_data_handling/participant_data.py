@@ -93,7 +93,7 @@ class ParticipantData:
     def update_files(self):
         with open('participant_data_handling/participantStats.json', 'w') as f:
             #f.write(json.dumps(self.participants_stats, indent=2))
-            json.dump({'participant_stats':self.participants_stats}, f, indent = 2)
+            json.dump({'participant_stats':self.participants_stats}, f, indent = 2, default=lambda o: o.__dict__)
 
     # clears current scores
     def clear(self):
