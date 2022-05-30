@@ -42,7 +42,12 @@ class PersistentStore:
             key = str(key)
 
         # Ensure we don't have a reference to the original value
-        self.__store[key] = deepcopy(value)
+        v = deepcopy(value)
+
+        if type(v) is dict:
+            self.__clean_keys(v)
+
+        self.__store[key] = v
         self.sync()
 
     def __contains__(self, key):
@@ -52,19 +57,7 @@ class PersistentStore:
         return key in self.__store
 
     def update(self, data):
-        def __clean_keys(dic):
-            for k, v in list(dic.items()):
-                if type(k) is int:
-                    if str(k) in dic:
-                        raise Exception(f'Duplicate keys in dict: {str(k)}')
-
-                    dic[str(k)] = v
-                    del dic[k]
-
-                if type(v) is dict:
-                    __clean_keys(v)
-
-        __clean_keys(data)
+        self.__clean_keys(data)
         self.__store.update(data)
         self.sync()
 
@@ -73,3 +66,15 @@ class PersistentStore:
         json.dump(self.__store, self.__f)
         self.__f.truncate()
         self.__f.flush()
+
+    def __clean_keys(self, dic):
+        for k, v in list(dic.items()):
+            if type(k) is int:
+                if str(k) in dic:
+                    raise Exception(f'Duplicate keys in dict: {str(k)}')
+
+                dic[str(k)] = v
+                del dic[k]
+
+            if type(v) is dict:
+                self.__clean_keys(v)

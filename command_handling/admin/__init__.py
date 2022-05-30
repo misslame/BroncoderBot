@@ -11,7 +11,7 @@ async def __admin_only(interaction: discord.Interaction):
     guild_id = interaction.guild_id
 
     # Defaults to administrator permissions if no admin role assigned
-    if not guild_id in store or 'admin_role' in store[guild_id]:
+    if not guild_id in store or 'admin_role' not in store[guild_id]:
         if interaction.user.resolved_permissions.administrator:
             return True
     elif interaction.guild.get_role(store[guild_id][admin_role]) in interaction.user.roles:
