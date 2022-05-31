@@ -8,7 +8,7 @@ class Points:
 
     def __init__(self):
         try:
-            f = open('points_table/pointsData.txt', 'r')
+            f = open("points_table/pointsData.txt", "r")
             fileContent: str = f.read()
             if fileContent == "":
                 self.pointMap = {}
@@ -20,7 +20,7 @@ class Points:
 
     # updates file (idk im just calling it everytime there's a change just in case the bot crashes)
     def update(self):
-        f = open('points_table/pointsData.txt', 'w')
+        f = open("points_table/pointsData.txt", "w")
         f.write(json.dumps(self.pointMap))
         f.close()
 
