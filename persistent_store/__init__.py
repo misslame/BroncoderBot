@@ -56,6 +56,13 @@ class PersistentStore:
 
         return key in self.__store
 
+    def __delitem__(self, key):
+        if type(key) is int:
+            key = str(key)
+
+        del self.__store[key]
+        self.sync()
+
     def update(self, data):
         self.__clean_keys(data)
         self.__store.update(data)

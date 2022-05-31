@@ -9,6 +9,7 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 import requests
 from config.config import LEETCODE_PASSWORD, LEETCODE_USERNAME
 from submission_handling.browser_state import *
+from problem_fetching.problem_fetch import getQuestionByTitleSlug
 import asyncio
 import copy
 
@@ -85,6 +86,36 @@ async def setup(question):
     tab_fix = """onkeydown=\"if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}\""""
     driver.execute_script(
         f'document.getElementsByClassName("btns__1OeZ")[0].innerHTML += `<textarea id="clipboard" {tab_fix} rows="4" cols="50">shit</textarea>`'
+    )
+    my_browser_state.state = READY
+
+async def changeProblem(title_slug):
+    my_browser_state.state = SETTING_UP
+
+    problem = await getQuestionByTitleSlug(title_slug)
+    # make sure the problem exists
+
+    driver.get("https://leetcode.com/problems/{}".format(title_slug))
+
+    try:
+        element_present = EC.invisibility_of_element((By.ID, "initial-loading"))
+        WebDriverWait(driver, 5).until(element_present)
+    except TimeoutException:
+        exit()
+
+    try:
+        element_present = EC.presence_of_element_located(
+            (By.XPATH, '//*[contains(text(), "Got it!")]')
+        )
+        WebDriverWait(driver, timeout).until(element_present)
+        driver.find_element(By.XPATH, '//*[contains(text(), "Got it!")]').click()
+    except TimeoutException:
+        pass
+
+    driver.find_element(By.XPATH, "//*[@data-cy='lang-select']").click()
+    driver.find_element(By.XPATH, "//li[contains(text(), 'Python3')]").click()
+    driver.execute_script(
+        'document.getElementsByClassName("btns__1OeZ")[0].innerHTML += \'<textarea id="clipboard" rows="4" cols="50">shit</textarea>\''
     )
     my_browser_state.state = READY
 
