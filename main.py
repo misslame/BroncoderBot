@@ -1,5 +1,5 @@
-import asyncio
-from datetime import datetime, time, timedelta
+import zoneinfo
+from datetime import time
 import discord
 from discord import app_commands
 from discord.ext import tasks
@@ -22,10 +22,10 @@ tree = app_commands.CommandTree(client)
 
 @client.event
 async def on_ready():
-    client.loop.create_task(called_once_a_day())
     print(f'Logged in as {client.user} (ID: {client.user.id})')
     await tree.sync()
     print('-------------------------------------')
+    daily_announcement.start()
 
 
 ''' **************************************************
@@ -151,34 +151,20 @@ async def tree_errors(interaction: discord.Interaction, error: app_commands.AppC
     ANNOUNCEMENT HANDLING
 ******************************************************'''
 
-target_channel_id = 833465079559094312
-WHEN = time(23, 34, 0)
+ANNOUNCEMENT_CHANNEL_ID = 833465079559094312
+tz =  zoneinfo.ZoneInfo('PST8PDT')
+# 7:30 am
+ANNOUNCEMENT_TIME = time(hour=7, minute=30, tzinfo=tz)
 
-today = datetime.now()
-
-
-@tasks.loop(minutes=1)
-async def called_once_a_day():
-    global today
-    today = today.replace(hour=22, minute=30, second=0)
-    now = datetime.utcnow()
-    message_channel = client.get_channel(target_channel_id)
-    if now > today:
-        print("now>today")
-        await message_channel.send("useless scheduled announcement")
-        today + timedelta(days=1)
-    print(f"Got channel {message_channel}")
-    await message_channel.send("useless scheduled announcement")
+@tasks.loop(time=ANNOUNCEMENT_TIME)
+async def daily_announcement():
+    message_channel = client.get_channel(ANNOUNCEMENT_CHANNEL_ID)
+    await message_channel.send('This announcement happens at 7:30am PST.')
 
 
-@called_once_a_day.before_loop
+@daily_announcement.before_loop
 async def before():
-    now = datetime.utcnow()
-    target_time = datetime.combine(now.date(), WHEN)
-    seconds_until_target = (target_time - now).total_seconds()
-    await asyncio.sleep(seconds_until_target)
     await client.wait_until_ready()
-    print("Finished waiting")
 
 Points.get_instance().init_points()
 client.run(BOT_TOKEN)
