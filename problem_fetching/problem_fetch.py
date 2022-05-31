@@ -47,7 +47,7 @@ async def getRandomQuestion(difficulty=RANDOM_DIFFICLUTY, skip_paid = True):
     }
     """
     variables={
-        "categorySlug": "", 
+        "categorySlug": "Algorithms", 
         "filters": {
 
         }
