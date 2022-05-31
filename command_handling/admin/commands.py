@@ -2,6 +2,7 @@ import discord
 from discord import app_commands
 
 from persistent_store import PersistentStore
+from submission_handling.selenium import changeProblem
 
 store = PersistentStore.get_instance()
 
@@ -31,6 +32,14 @@ async def refresh_daily(interaction: discord.Interaction):
 async def refresh_status(interaction: discord.Interaction):
     pass
 
+@app_commands.command(description="Change the problem of the day.")
+@app_commands.describe(title_slug="Problem title slug (the thing after the url)")
+async def change_problem(interaction: discord.Interaction, title_slug:str):
+    await interaction.response.defer()
+    await changeProblem(title_slug)
+    await interaction.followup.send(f'Set challenge of the day to {title_slug}')
+    return
+
 __all__ = [
-    'set_admin_role', 'end_early', 'refresh_daily', 'refresh_status'
+    'set_admin_role', 'end_early', 'refresh_daily', 'refresh_status', 'change_problem'
 ]

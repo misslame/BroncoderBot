@@ -7,6 +7,7 @@ from messages.embeds import createSubmissionEmbed, createProblemEmbed
 from problem_fetching.problem_fetch import getRandomQuestion, getQuestionByTitleSlug
 from discord import Attachment, app_commands
 from points_table.points import Points
+from persistent_store import PersistentStore
 
 
 # Modules
@@ -21,26 +22,25 @@ client = discord.Client(intents=intenderinos)
 tree = app_commands.CommandTree(client)
 
 
-# eventually replace this with use of persistent store
-class ChallengeOfTheDay:
-    def __init__(self):
-        self.question = {}
 
-    def setQuestion(self, question):
-        self.question = question
-
-    def getQuestion(self):
-        return self.question
-
-
-challenge = ChallengeOfTheDay()
-
+persistent_store_cotd = PersistentStore(filename="cotd.json")
 
 @client.event
 async def on_connect():
-    # challenge.setQuestion(await getRandomQuestion())
-    challenge.setQuestion(await getQuestionByTitleSlug("two-sum"))
-    await setup(challenge.getQuestion())
+
+    store = persistent_store_cotd.get_instance()
+    if "title" not in store:
+        print("No existing COTD found, making a new one...")
+        challenge = await getRandomQuestion()
+        for key in challenge:
+            store[key] = challenge[key]
+        store.sync()
+        title = store["title"]
+        print(f"\"{title}\" is the new COTD!")
+    else:
+        title = store["title"]
+        print(f"\"{title}\" is the current COTD!")
+    await setup(store)
 
 
 COOLDOWN_SECONDS = 0
@@ -63,7 +63,7 @@ async def hello(interaction: discord.Interaction):
 async def cotd(interaction: discord.Interaction):
     await interaction.response.send_message(
         content="Today's challenge:",
-        embed=createProblemEmbed(question=challenge.getQuestion()),
+        embed=createProblemEmbed(question=persistent_store_cotd),
     )
 
 
@@ -87,7 +87,7 @@ async def submit(
 
     if not submission.get("err"):
 
-        difficulty_str = challenge.getQuestion().get("difficulty")
+        difficulty_str = persistent_store_cotd.get("difficulty")
         difficulties = {"Easy": 1, "Medium": 2, "Hard": 3}
         DIFFICULTY_POINT = difficulties[difficulty_str]
 
@@ -146,7 +146,7 @@ async def testsubmit(interaction: discord.Interaction):
 
     if not submission.get("err"):
 
-        difficulty_str = challenge.getQuestion().get("difficulty")
+        difficulty_str = persistent_store_cotd.get("difficulty")
         difficulties = {"Easy": 1, "Medium": 2, "Hard": 3}
         DIFFICULTY_POINT = difficulties[difficulty_str]
 
