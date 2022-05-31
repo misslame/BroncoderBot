@@ -1,9 +1,11 @@
+from unicodedata import name
 import discord
 from discord import Embed, app_commands
 from discord.ext import commands
 from config.config import BOT_TOKEN
+from messages.problem_view import ProblemView
 from submission_handling.selenium import setup, submitAttachmentToLeetcode
-from messages.embeds import createSubmissionEmbed, createProblemEmbed
+from messages.embeds import createSubmissionEmbed, createProblemEmbed, getProblemEmbeds
 from problem_fetching.problem_fetch import getRandomQuestion, getQuestionByTitleSlug
 from discord import Attachment, app_commands
 from points_table.points import Points
@@ -18,9 +20,13 @@ from points_table.points import Points
 
 intenderinos = discord.Intents.default()
 intenderinos.members = True
-client = discord.Client(intents=intenderinos)
-tree = app_commands.CommandTree(client)
 
+activity = discord.activity.Activity(
+    type=discord.ActivityType.competing, name="Leetcode"
+)
+
+client = discord.Client(intents=intenderinos, activity=activity)
+tree = app_commands.CommandTree(client)
 
 
 persistent_store_cotd = PersistentStore(filename="cotd.json")
