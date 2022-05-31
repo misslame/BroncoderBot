@@ -64,6 +64,48 @@ async def getRandomQuestion(difficulty=RANDOM_DIFFICLUTY, skip_paid = True):
     # print(res.json()["data"]["randomQuestion"]["titleSlug"])
     return get()["data"]["randomQuestion"]
 
-# def getProblemImage(content):
-#     hti.screenshot(html_str=content,css_str = "body {background: white;font-family: Arial;}", save_as='test.jpg', size=(1920,1080))
+async def getQuestionByTitleSlug(title_slug):
+    query = """
+    query questionData($titleSlug: String!) {
+        question(titleSlug: $titleSlug) {
+            categoryTitle
+            questionId
+            difficulty
+            isPaidOnly
+            titleSlug
+            title
+            translatedTitle
+            codeDefinition
+            content
+            translatedContent
+            difficulty
+            likes
+            dislikes
+            similarQuestions
+            topicTags {
+                name
+            }
+            codeSnippets {
+                lang
+                langSlug
+                code
+                __typename
+            }
+            stats
+            hints
+            exampleTestcases
+            sampleTestCase
+            metaData
+            enableRunCode
+        }
+    }
+    """
     
+    variables = {
+        "titleSlug": title_slug
+    }
+    res = requests.get(endpoint, json={'query': query , 'variables': variables}).json()
+    return res["data"]["question"]
+
+
+
