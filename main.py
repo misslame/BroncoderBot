@@ -3,7 +3,7 @@ from discord import Embed, app_commands
 from discord.ext import commands
 from submission_handling.selenium import setup, submitAttachmentToLeetcode
 from messages.embeds import createSubmissionEmbed, createProblemEmbed
-from problem_fetching.problem_fetch import getRandomQuestion
+from problem_fetching.problem_fetch import getRandomQuestion, getQuestionByTitleSlug
 from discord import Attachment, app_commands
 from points_table.points import Points
 
@@ -36,10 +36,11 @@ challenge = ChallengeOfTheDay()
 
 @client.event
 async def on_connect():
-    challenge.setQuestion(await getRandomQuestion())
+    # challenge.setQuestion(await getRandomQuestion())
+    challenge.setQuestion(await getQuestionByTitleSlug("two-sum"))
     await setup(challenge.getQuestion())
     
-COOLDOWN_SECONDS = 60 * 5
+COOLDOWN_SECONDS = 0
 
 @client.event
 async def on_ready():
@@ -68,38 +69,43 @@ async def enroll(interaction: discord.Integration):
 @app_commands.describe(attachment="The code to submit", language="progamming language")
 async def submit(interaction: discord.Interaction, attachment: discord.Attachment, language: str):
     await interaction.response.defer()
-    successful_submission = await handle_submission(interaction, attachment, language)
-    if (successful_submission):
-        # TODO: change to the difficulty value
-        DIFFICULTY_POINT = 1  # TEMPORARY
+    submission = await handle_submission(interaction, attachment, language)
+    print(submission)
+    
+    if not submission.get("err"):
 
-        Points.get_instance().addPoints(interaction.user.id, DIFFICULTY_POINT)
+        difficulty_str = challenge.getQuestion().get("difficulty")
+        difficulties = {
+            "Easy": 1,
+            "Medium": 2,
+            "Hard": 3
+        }
+        DIFFICULTY_POINT = difficulties[difficulty_str]
+
         # TODO: add timestamp
 
         # check cooldown
         # app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 
-        await interaction.channel.send(
-            f'{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point(s)!')
-
         ''' ** TESTING ** '''
+
+        completion_percent = submission.get("details").get("result_progress_percent")
+        embed = createSubmissionEmbed(details=submission["details"], uploader_name=interaction.user.name)
+
+        if completion_percent == 1.0:
+            Points.get_instance().addPoints(interaction.user.id, DIFFICULTY_POINT)
+            await interaction.channel.send(
+                f'{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point(s)!', embed=embed)
+        else:
+            await interaction.channel.send(embed=embed)
+
+
         await interaction.channel.send(
             f'{interaction.user.mention} now has {Points.get_instance().getPoints(interaction.user.id)} point(s)!')
 
         return
-
-# jams' submit command
-# @tree.command()
-# @app_commands.describe(attachment="The code to submit")
-# async def submit(interaction: discord.Interaction, attachment: discord.Attachment):
-    # print("recieved submission")
-    # await interaction.response.send_message(f'Thanks for uploading {attachment.filename}!')
-    # await interaction.followup.send(f'The file uploaded was: {attachment.content_type}')
-    # submission = await submitAttachmentToLeetcode(attachment)
-    # if submission["err"]:
-    #     await interaction.followup.send(embed=createSubmissionEmbed(msg=submission["msg"], uploader_name=interaction.user.name))
-    # elif not submission["err"]:
-    #     await interaction.followup.send(embed=createSubmissionEmbed(details=submission["details"], uploader_name=interaction.user.name))
+    else:
+        await interaction.followup.send(embed=createSubmissionEmbed(msg=submission["msg"], uploader_name=interaction.user.name))
 
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="Test Submit Command.")
@@ -112,22 +118,43 @@ async def testsubmit(interaction: discord.Interaction):
             'spoiler': False, 'content_type': 'text/x-python; charset=utf-8'}
     attachment, language = discord.Attachment(
         data=data, state=interaction.client._get_state()), "python"
-    successful_submission = await handle_submission(interaction, attachment, language)
+    submission = await handle_submission(interaction, attachment, language)
 
-    if (successful_submission):
-        # TODO: change to the difficulty value
-        DIFFICULTY_POINT = 1  # TEMPORARY
+    if not submission.get("err"):
 
-        Points.get_instance().addPoints(interaction.user.id, DIFFICULTY_POINT)
+        difficulty_str = challenge.getQuestion().get("difficulty")
+        difficulties = {
+            "Easy": 1,
+            "Medium": 2,
+            "Hard": 3
+        }
+        DIFFICULTY_POINT = difficulties[difficulty_str]
+
         # TODO: add timestamp
-        await interaction.channel.send(
-            f'{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point(s)!')
+
+        # check cooldown
+        # app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 
         ''' ** TESTING ** '''
+
+        completion_percent = submission.get("details").get("result_progress_percent")
+        embed = createSubmissionEmbed(details=submission["details"], uploader_name=interaction.user.name)
+
+        if completion_percent == 1.0:
+            Points.get_instance().addPoints(interaction.user.id, DIFFICULTY_POINT)
+            await interaction.channel.send(
+                f'{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point(s)!', embed=embed)
+        else:
+            await interaction.channel.send(embed=embed)
+
+
         await interaction.channel.send(
             f'{interaction.user.mention} now has {Points.get_instance().getPoints(interaction.user.id)} point(s)!')
 
         return
+    else:
+        await interaction.followup.send(embed=createSubmissionEmbed(msg=submission["msg"], uploader_name=interaction.user.name))
+
 
 
 @tree.command(description="Returns the Top 10 Users.")

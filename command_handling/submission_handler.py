@@ -1,4 +1,6 @@
 import discord
+from submission_handling.selenium import submitAttachmentToLeetcode
+from messages.embeds import createSubmissionEmbed
 
 '''
 Dictionary of supported languages
@@ -18,9 +20,9 @@ supported_languages = {
 
 async def handle_submission(interaction: discord.Interaction, attachment: discord.Attachment, language: str):
     ''' ** TESTING ** '''
-    await interaction.channel.send(f'The file uploaded was: {attachment.content_type} language submitted is {language}')
+    # await interaction.channel.send(f'The file uploaded was: {attachment.content_type} language submitted is {language}')
 
-    successful_submission = False
+    submission = None
 
     response_message = f'Thanks for uploading, {interaction.user.display_name}!. Recieved file: {attachment.filename}\n'
 
@@ -33,16 +35,16 @@ async def handle_submission(interaction: discord.Interaction, attachment: discor
             file_contents = submited_file.decode('utf-8')
 
             ''' ** TESTING ** '''
-            await interaction.channel.send(f'File Content is {file_contents}')
+            # await interaction.channel.send(f'File Content is {file_contents}')
 
-            #TODO: successful_submission = METHOD_TO_VERIFY(file_contents)
-            successful_submission = True
+            submission = await submitAttachmentToLeetcode(attachment)
+
         else:
             response_message += f'You indicated a {language} submission, that is not a python file!'
 
     await interaction.followup.send(response_message)
 
-    return successful_submission
+    return submission
 
 
 def get_extension(language_alias): #Finds the key that has the following language alias as a value
