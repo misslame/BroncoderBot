@@ -143,6 +143,12 @@ async def submitCode(code):
     response_dict["details"]["result_progress"] = driver.find_element(By.ID, "result_progress").get_attribute("innerText")
     print(response_dict["details"]["result_progress"])
     
+    result_progress_split = response_dict["details"]["result_progress"].split(" / ")
+    if len(result_progress_split) == 2:
+        num = int(result_progress_split[0])
+        den = int(result_progress_split[1])
+        response_dict["details"]["result_progress_percent"] = num/den
+    
     driver.execute_script("window.close()")
     driver.switch_to.window(driver.window_handles[0])
     my_browser_state.state = READY
