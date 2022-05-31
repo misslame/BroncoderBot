@@ -1,3 +1,4 @@
+import traceback
 from typing import Literal
 import discord
 from discord import Embed, app_commands
@@ -31,10 +32,11 @@ tree = app_commands.CommandTree(client)
 
 persistent_store_cotd = PersistentStore(filename="cotd.json")
 
+store = persistent_store_cotd.get_instance()
+
 @client.event
 async def on_connect():
 
-    store = persistent_store_cotd.get_instance()
     if "title" not in store:
         print("No existing COTD found, making a new one...")
         challenge = await getRandomQuestion()
@@ -67,7 +69,7 @@ async def hello(interaction: discord.Interaction):
 @tree.command()
 @app_commands.describe()
 async def cotd(interaction: discord.Interaction):
-    embeds = getProblemEmbeds(persistent_store_cotd)
+    embeds = getProblemEmbeds(store)
     
     await interaction.response.send_message(
         content="Today's challenge:",
@@ -100,7 +102,7 @@ async def submit(
 
     if not submission.get("err"):
 
-        difficulty_str = persistent_store_cotd.get("difficulty")
+        difficulty_str = store["difficulty"]
         difficulties = {"Easy": 1, "Medium": 2, "Hard": 3}
         DIFFICULTY_POINT = difficulties[difficulty_str]
 
@@ -169,7 +171,7 @@ async def testsubmit(interaction: discord.Interaction):
 
     if not submission.get("err"):
 
-        difficulty_str = persistent_store_cotd.get("difficulty")
+        difficulty_str = store["difficulty"]
         difficulties = {"Easy": 1, "Medium": 2, "Hard": 3}
         DIFFICULTY_POINT = difficulties[difficulty_str]
 
@@ -229,7 +231,7 @@ async def tree_errors(
             ephemeral=True,
         )
     else:
-        print(error)
+        traceback.print_exception(type(error), error, error.__traceback__)
 
 
 def readable(seconds: int):

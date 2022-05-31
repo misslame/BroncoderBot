@@ -68,17 +68,17 @@ def createSubmissionEmbed(
 
 def createProblemEmbed(question):
     embed = discord.Embed(
-        title=question.get("title"),
+        title=question["title"],
         color=COLOR_NEUTRAL,
         url="https://leetcode.com/problems/{}/".format(question["titleSlug"]),
     )
-    embed.add_field(name="Difficulty", value=question.get("difficulty"), inline=True)
-    embed.add_field(name="Category", value=question.get("categoryTitle"), inline=True)
+    embed.add_field(name="Difficulty", value=question["difficulty"], inline=True)
+    embed.add_field(name="Category", value=question["categoryTitle"], inline=True)
     embed.set_footer(text="use /submit to upload your answer")
-    tags = question.get("topicTags")
+    tags = question["topicTags"]
     tag_str = ""
     for tag in tags:
-        tag_str += "• " + tag.get("name") + "\n"
+        tag_str += "• " + tag["name"] + "\n"
     embed.add_field(name="Tags", value=tag_str, inline=False)
     return embed
 
@@ -123,10 +123,10 @@ def getProblemEmbeds(problem_raw):
 
 def parseProblem(problem):
 
-    title = problem.get("title")
-    slug = problem.get("titleSlug")
+    title = problem["title"]
+    slug = problem["titleSlug"]
 
-    content_html = problem.get("content")
+    content_html = problem["content"]
 
     content_html = content_html.replace("&nbsp;", " ")
 

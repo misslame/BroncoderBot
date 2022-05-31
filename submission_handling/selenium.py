@@ -62,7 +62,7 @@ async def setup(question):
         exit()
 
     driver.get(
-        "https://leetcode.com/problems/{}".format(question.get("titleSlug")))
+        "https://leetcode.com/problems/{}".format(question["titleSlug"]))
 
     try:
         element_present = EC.invisibility_of_element(
@@ -75,7 +75,7 @@ async def setup(question):
         element_present = EC.presence_of_element_located(
             (By.XPATH, '//*[contains(text(), "Got it!")]')
         )
-        WebDriverWait(driver, timeout).until(element_present)
+        WebDriverWait(driver, 5).until(element_present)
         driver.find_element(
             By.XPATH, '//*[contains(text(), "Got it!")]').click()
     except TimeoutException:
@@ -107,15 +107,16 @@ async def changeProblem(title_slug):
         element_present = EC.presence_of_element_located(
             (By.XPATH, '//*[contains(text(), "Got it!")]')
         )
-        WebDriverWait(driver, timeout).until(element_present)
+        WebDriverWait(driver, 10).until(element_present)
         driver.find_element(By.XPATH, '//*[contains(text(), "Got it!")]').click()
     except TimeoutException:
         pass
 
     driver.find_element(By.XPATH, "//*[@data-cy='lang-select']").click()
     driver.find_element(By.XPATH, "//li[contains(text(), 'Python3')]").click()
+    tab_fix = """onkeydown=\"if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}\""""
     driver.execute_script(
-        'document.getElementsByClassName("btns__1OeZ")[0].innerHTML += \'<textarea id="clipboard" rows="4" cols="50">shit</textarea>\''
+        f'document.getElementsByClassName("btns__1OeZ")[0].innerHTML += `<textarea id="clipboard" {tab_fix} rows="4" cols="50">shit</textarea>`'
     )
     my_browser_state.state = READY
 

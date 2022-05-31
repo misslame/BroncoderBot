@@ -70,7 +70,7 @@ class PersistentStore:
 
     def sync(self):
         self.__f.seek(0)
-        json.dump(self.__store, self.__f)
+        json.dump(self.__store, self.__f, indent=1)
         self.__f.truncate()
         self.__f.flush()
 
