@@ -18,7 +18,7 @@ class PersistentStore:
                 self.__store = {}
                 self.sync()
         else:
-            raise RuntimeException('PersistentStore is singleton')
+            raise RuntimeError('PersistentStore is singleton')
 
     @staticmethod
     def get_instance():
