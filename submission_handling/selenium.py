@@ -7,8 +7,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 import requests
-from dotenv import load_dotenv
-import os
+from config.config import LEETCODE_PASSWORD, LEETCODE_USERNAME
 from submission_handling.browser_state import *
 import asyncio
 import copy
@@ -18,36 +17,32 @@ timeout = 10
 
 my_browser_state = BrowserState()
 options = webdriver.ChromeOptions()
-options.add_experimental_option('excludeSwitches', ['enable-logging'])
+options.add_experimental_option("excludeSwitches", ["enable-logging"])
 driver = webdriver.Chrome(desired_capabilities=desired_capabilities, options=options)
 
-response_dict_base = {
-        "msg": None,
-        "err": False,
-        "details":{
-        }
-    }
+response_dict_base = {"msg": None, "err": False, "details": {}}
+
 
 def exit():
-    print( "Timed out waiting for page to load")
+    print("Timed out waiting for page to load")
     my_browser_state.state = BROKEN
     driver.quit()
 
+
 async def setup(question):
     my_browser_state.state = SETTING_UP
-    driver.get('https://leetcode.com/accounts/login/?next=/profile/account/')
+    driver.get("https://leetcode.com/accounts/login/?next=/profile/account/")
     try:
-        element_present = EC.presence_of_element_located((By.ID, 'signin_btn'))
+        element_present = EC.presence_of_element_located((By.ID, "signin_btn"))
         WebDriverWait(driver, timeout).until(element_present)
     except TimeoutException:
         exit()
-    
-    load_dotenv()
-    driver.find_element(By.ID, "id_login").send_keys(os.environ.get("LEETCODE_USERNAME"))
-    driver.find_element(By.ID, "id_password").send_keys(os.environ.get("LEETCODE_PASSWORD"))
+
+    driver.find_element(By.ID, "id_login").send_keys(LEETCODE_USERNAME)
+    driver.find_element(By.ID, "id_password").send_keys(LEETCODE_PASSWORD)
 
     try:
-        element_not_present = EC.invisibility_of_element((By.ID, 'initial-loading'))
+        element_not_present = EC.invisibility_of_element((By.ID, "initial-loading"))
         WebDriverWait(driver, timeout).until(element_not_present)
     except TimeoutException:
         exit()
@@ -55,7 +50,7 @@ async def setup(question):
     driver.find_element(By.ID, "signin_btn").click()
 
     try:
-        element_present = EC.presence_of_element_located((By.ID, 'profile-app'))
+        element_present = EC.presence_of_element_located((By.ID, "profile-app"))
         WebDriverWait(driver, timeout).until(element_present)
     except TimeoutException:
         exit()
@@ -63,47 +58,57 @@ async def setup(question):
     driver.get("https://leetcode.com/problems/{}".format(question.get("titleSlug")))
 
     try:
-        element_present = EC.invisibility_of_element((By.ID, 'initial-loading'))
+        element_present = EC.invisibility_of_element((By.ID, "initial-loading"))
         WebDriverWait(driver, timeout).until(element_present)
     except TimeoutException:
         exit()
-        
+
     try:
-        element_present = EC.presence_of_element_located((By.XPATH, '//*[contains(text(), "Got it!")]'))
+        element_present = EC.presence_of_element_located(
+            (By.XPATH, '//*[contains(text(), "Got it!")]')
+        )
         WebDriverWait(driver, timeout).until(element_present)
         driver.find_element(By.XPATH, '//*[contains(text(), "Got it!")]').click()
     except TimeoutException:
         pass
-    
 
     driver.find_element(By.XPATH, "//*[@data-cy='lang-select']").click()
     driver.find_element(By.XPATH, "//li[contains(text(), 'Python3')]").click()
-    driver.execute_script("document.getElementsByClassName(\"btns__1OeZ\")[0].innerHTML += '<textarea id=\"clipboard\" rows=\"4\" cols=\"50\">shit</textarea>'")
+    driver.execute_script(
+        'document.getElementsByClassName("btns__1OeZ")[0].innerHTML += \'<textarea id="clipboard" rows="4" cols="50">shit</textarea>\''
+    )
     my_browser_state.state = READY
-    
+
+
 async def typeCode(code):
-    clipboard = driver.find_element(By.ID, 'clipboard')
+    clipboard = driver.find_element(By.ID, "clipboard")
     clipboard.click()
     actions = ActionChains(driver)
-    actions.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
+    actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).perform()
     actions.send_keys(code).perform()
-    actions.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
-    actions.key_down(Keys.CONTROL).send_keys('c').key_up(Keys.CONTROL).perform()
-    code_editor = driver.find_element(By.CLASS_NAME, 'CodeMirror-lines')
+    actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).perform()
+    actions.key_down(Keys.CONTROL).send_keys("c").key_up(Keys.CONTROL).perform()
+    code_editor = driver.find_element(By.CLASS_NAME, "CodeMirror-lines")
     code_editor.click()
-    actions.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
-    actions.key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
-    
+    actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).perform()
+    actions.key_down(Keys.CONTROL).send_keys("v").key_up(Keys.CONTROL).perform()
 
 
 async def submitAttachmentToLeetcode(attachment):
     if my_browser_state.state == BUSY:
-        return {"msg": "Broncoder is currently busy. Eventually we'll add a queue system, but try again later", "err": True}
+        return {
+            "msg": "Broncoder is currently busy. Eventually we'll add a queue system, but try again later",
+            "err": True,
+        }
     if my_browser_state.state == SETTING_UP:
-        return {"msg": "Broncoder is currently setting up. Please try again in a couple of seconds", "err": True}
+        return {
+            "msg": "Broncoder is currently setting up. Please try again in a couple of seconds",
+            "err": True,
+        }
     url = str(attachment)
     code = requests.get(url).text
     return await submitCode(code)
+
 
 async def submitCode(code):
     response_dict = copy.deepcopy(response_dict_base)
@@ -112,17 +117,23 @@ async def submitCode(code):
     await typeCode(code)
     driver.find_element(By.XPATH, '//button[@data-cy="submit-code-btn"]').click()
     try:
-        element_present = EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Pending')]"))
+        element_present = EC.presence_of_element_located(
+            (By.XPATH, "//*[contains(text(), 'Pending')]")
+        )
         WebDriverWait(driver, timeout).until(element_present)
     except TimeoutException:
         exit()
     await asyncio.sleep(5)
     try:
-        element_present = EC.presence_of_element_located((By.XPATH, "//a[starts-with(@href, '/submissions/detail')]"))
+        element_present = EC.presence_of_element_located(
+            (By.XPATH, "//a[starts-with(@href, '/submissions/detail')]")
+        )
         WebDriverWait(driver, timeout).until(element_present)
     except TimeoutException:
         exit()
-    result_url = driver.find_element(By.XPATH, "//a[starts-with(@href, '/submissions/detail')]").get_property("href")
+    result_url = driver.find_element(
+        By.XPATH, "//a[starts-with(@href, '/submissions/detail')]"
+    ).get_property("href")
     print(result_url)
     driver.execute_script("window.open()")
     driver.switch_to.window(driver.window_handles[1])
@@ -130,25 +141,35 @@ async def submitCode(code):
 
     # wait until done loading
     try:
-        element_present = EC.presence_of_element_located((By.CLASS_NAME, "testcase-table-re"))
+        element_present = EC.presence_of_element_located(
+            (By.CLASS_NAME, "testcase-table-re")
+        )
         WebDriverWait(driver, timeout).until(element_present)
     except TimeoutException:
         exit()
-    
-    response_dict["details"]["result_state"] = driver.find_element(By.ID, "result_state").get_attribute("innerText")
+
+    response_dict["details"]["result_state"] = driver.find_element(
+        By.ID, "result_state"
+    ).get_attribute("innerText")
     print(response_dict["details"]["result_state"])
     if response_dict["details"]["result_state"] == "Accepted":
-        response_dict["details"]["result_memory"] = driver.find_element(By.ID, "result_memory").get_attribute("innerText")
-        response_dict["details"]["result_runtime"] = driver.find_element(By.ID, "result_runtime").get_attribute("innerText")
-    response_dict["details"]["result_progress"] = driver.find_element(By.ID, "result_progress").get_attribute("innerText")
+        response_dict["details"]["result_memory"] = driver.find_element(
+            By.ID, "result_memory"
+        ).get_attribute("innerText")
+        response_dict["details"]["result_runtime"] = driver.find_element(
+            By.ID, "result_runtime"
+        ).get_attribute("innerText")
+    response_dict["details"]["result_progress"] = driver.find_element(
+        By.ID, "result_progress"
+    ).get_attribute("innerText")
     print(response_dict["details"]["result_progress"])
-    
+
     result_progress_split = response_dict["details"]["result_progress"].split(" / ")
     if len(result_progress_split) == 2:
         num = int(result_progress_split[0])
         den = int(result_progress_split[1])
-        response_dict["details"]["result_progress_percent"] = num/den
-    
+        response_dict["details"]["result_progress_percent"] = num / den
+
     driver.execute_script("window.close()")
     driver.switch_to.window(driver.window_handles[0])
     my_browser_state.state = READY
