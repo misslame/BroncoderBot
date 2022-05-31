@@ -22,22 +22,28 @@ async def handle_submission(interaction: discord.Interaction, attachment: discor
     ''' ** TESTING ** '''
     # await interaction.channel.send(f'The file uploaded was: {attachment.content_type} language submitted is {language}')
 
+    response_message = f'Thanks for uploading, {interaction.user.display_name}! Recieved {language} file: {attachment.filename}.'
+    wait_message = "\n\nPlease wait while we check your submission..."
+
+    await interaction.followup.send(response_message+wait_message)
+    
+    submission = await submitAttachmentToLeetcode(attachment, language)
+    
+    return submission
+    
     submission = None
-
-    response_message = f'Thanks for uploading, {interaction.user.display_name}!. Recieved file: {attachment.filename}\n'
-
     extension = get_extension(language)
     if(extension is not None): # found as a supported language
         if(verify_language(attachment, language.lower(), extension)):
             # valid file extension / language
-            print('Valid file was submitted.')
+            # print('Valid file was submitted.')
             submited_file = await attachment.read(use_cached=False)
             file_contents = submited_file.decode('utf-8')
 
             ''' ** TESTING ** '''
             # await interaction.channel.send(f'File Content is {file_contents}')
 
-            submission = await submitAttachmentToLeetcode(attachment)
+            submission = await submitAttachmentToLeetcode(attachment, language)
 
         else:
             response_message += f'You indicated a {language} submission, that is not a python file!'

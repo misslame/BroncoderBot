@@ -1,4 +1,4 @@
-from unicodedata import name
+from typing import Literal
 import discord
 from discord import Embed, app_commands
 from discord.ext import commands
@@ -28,6 +28,8 @@ client = discord.Client(intents=intenderinos, activity=activity)
 tree = app_commands.CommandTree(client)
 
 # TODO: eventually replace this with use of persistent store
+
+
 class ChallengeOfTheDay:
     def __init__(self):
         self.question = {}
@@ -81,21 +83,25 @@ async def cotd(interaction: discord.Interaction):
 
 @tree.command(description="Enroll in competition.")
 async def enroll(interaction: discord.Integration):
-    role = discord.utils.get(interaction.guild.roles, name="Competition Reminders")
+    role = discord.utils.get(interaction.guild.roles,
+                             name="Competition Reminders")
     await interaction.user.add_roles(role)
     await interaction.response.send_message(
         f"Added {interaction.user.mention} to competition"
     )
 
-
 @tree.command(description="Submit your code.")
-@app_commands.describe(attachment="The code to submit", language="progamming language")
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+@app_commands.describe(attachment="The code to submit", language="Progamming language")
 async def submit(
-    interaction: discord.Interaction, attachment: discord.Attachment, language: str
+    interaction: discord.Interaction, attachment: discord.Attachment, language: Literal['C++', 'Java', 'Python', 'Python3', 'C', 'C#', 'JavaScript', 'Ruby', 'Swift',
+                                                                                        'Go', 'Scala', 'Kotlin', 'Rust', 'PHP', 'TypeScript', 'Racket', 'Erlang', 'Elixir']
 ):
     await interaction.response.defer()
     submission = await handle_submission(interaction, attachment, language)
-    print(submission)
+    # print(submission)
+
+    response_message = f'Thanks for uploading, {interaction.user.display_name}! Recieved {language} file: {attachment.filename}.'
 
     if not submission.get("err"):
 
@@ -110,27 +116,32 @@ async def submit(
 
         """ ** TESTING ** """
 
-        completion_percent = submission.get("details").get("result_progress_percent")
+        completion_percent = submission.get(
+            "details").get("result_progress_percent")
+
+        status = submission.get(
+            "details").get("result_state")
+
         embed = createSubmissionEmbed(
             details=submission["details"], uploader_name=interaction.user.name
         )
 
-        if completion_percent == 1.0:
+        if status == "Accepted":
             Points.get_instance().addPoints(interaction.user.id, DIFFICULTY_POINT)
-            await interaction.channel.send(
-                f"{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point(s)!",
+            p = Points.get_instance().getPoints(interaction.user.id)
+            await interaction.edit_original_message(
+                content=response_message+"\n\n"
+                f"{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point{'s'[:DIFFICULTY_POINT ^ 1]}!\n"
+                f"{interaction.user.mention} now has {p} point{'s'[:p ^ 1]}!",
                 embed=embed,
             )
         else:
-            await interaction.channel.send(embed=embed)
-
-        await interaction.channel.send(
-            f"{interaction.user.mention} now has {Points.get_instance().getPoints(interaction.user.id)} point(s)!"
-        )
+            await interaction.edit_original_message(content=response_message,embed=embed)
 
         return
     else:
         await interaction.followup.send(
+            content="",
             embed=createSubmissionEmbed(
                 msg=submission["msg"], uploader_name=interaction.user.name
             )
@@ -140,21 +151,26 @@ async def submit(
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="Test Submit Command.")
 async def testsubmit(interaction: discord.Interaction):
-    await interaction.response.defer(ephemeral=True)
+    await interaction.response.defer()
     data = {
-        "filename": "TEST.py",
-        "id": 980005177400643624,
-        "proxy_url": "https://cdn.discordapp.com/attachments/979971398753742859/980005541902430238/TEST.py",
+        "filename": "racket.rkt",
+        "id": 981136663499669554,
+        "proxy_url": "https://cdn.discordapp.com/attachments/979971398753742859/981136663499669554/racket.racket.txt",
         "size": 17,
-        "url": "https://cdn.discordapp.com/attachments/979971398753742859/980005541902430238/TEST.py",
+        "url": "https://cdn.discordapp.com/attachments/979971398753742859/981136663499669554/racket.racket.txt",
         "spoiler": False,
-        "content_type": "text/x-python; charset=utf-8",
+        "content_type": "text; charset=utf-8",
     }
     attachment, language = (
         discord.Attachment(data=data, state=interaction.client._get_state()),
-        "python",
+        "Racket",
     )
+
+
     submission = await handle_submission(interaction, attachment, language)
+    # print(submission)
+
+    response_message = f'Thanks for uploading, {interaction.user.display_name}! Recieved {language} file: {attachment.filename}.'
 
     if not submission.get("err"):
 
@@ -169,32 +185,36 @@ async def testsubmit(interaction: discord.Interaction):
 
         """ ** TESTING ** """
 
-        completion_percent = submission.get("details").get("result_progress_percent")
+        completion_percent = submission.get(
+            "details").get("result_progress_percent")
+
+        status = submission.get(
+            "details").get("result_state")
+
         embed = createSubmissionEmbed(
             details=submission["details"], uploader_name=interaction.user.name
         )
 
-        if completion_percent == 1.0:
+        if status == "Accepted":
             Points.get_instance().addPoints(interaction.user.id, DIFFICULTY_POINT)
-            await interaction.channel.send(
-                f"{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point(s)!",
+            p = Points.get_instance().getPoints(interaction.user.id)
+            await interaction.edit_original_message(
+                content=response_message+"\n\n"
+                f"{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point{'s'[:DIFFICULTY_POINT ^ 1]}!\n"
+                f"{interaction.user.mention} now has {p} point{'s'[:p ^ 1]}!",
                 embed=embed,
             )
         else:
-            await interaction.channel.send(embed=embed)
-
-        await interaction.channel.send(
-            f"{interaction.user.mention} now has {Points.get_instance().getPoints(interaction.user.id)} point(s)!"
-        )
+            await interaction.edit_original_message(content=response_message,embed=embed)
 
         return
     else:
-        await interaction.followup.send(
+        await interaction.edit_original_message(
+            content="",
             embed=createSubmissionEmbed(
                 msg=submission["msg"], uploader_name=interaction.user.name
             )
         )
-
 
 @tree.command(description="Returns the Top 10 Users.")
 @app_commands.describe()

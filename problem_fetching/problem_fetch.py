@@ -54,7 +54,7 @@ async def getRandomQuestion(difficulty=RANDOM_DIFFICLUTY, skip_paid=True):
             endpoint, json={"query": query, "variables": variables}
         ).json()
         if res["data"]["randomQuestion"]["isPaidOnly"] and skip_paid:
-            print("got paid question, retrying...")
+            # print("got paid question, retrying...")
             res = get()
         return res
 

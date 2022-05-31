@@ -2,6 +2,10 @@ import discord
 from markdownify import markdownify as md
 
 COLOR_NEUTRAL = 0x2E3135
+COLOR_RED = 0xFF0000
+COLOR_GREEN = 0x00FF00
+COLOR_YELLOW = 0xFFFF00
+
 CHECKMARK_EMOJI = " ✅ "
 CROSS_EMOJI = " ❌ "
 WARNING_EMOJI = " ⚠️ "
@@ -23,10 +27,13 @@ def createSubmissionEmbed(
     if challenge_name is not None:
         description += "**Challenge**: {0}\n".format(challenge_name)
 
-    if "result_state" in details:
-        title = details["result_state"]
+    status = details.get("result_state")
+    if status:
+        title = status
+        
 
     embed = discord.Embed(title=title, description=description)
+
     if "result_progress" in details:
         result_progress = details["result_progress"]
         result_progress_split = result_progress.split(" / ")
@@ -34,18 +41,21 @@ def createSubmissionEmbed(
             num = int(result_progress_split[0])
             den = int(result_progress_split[1])
             completion = num / den
-            if completion == 1.0:
+            if status == "Accepted":
                 result_progress += CHECKMARK_EMOJI
-                embed.color = 0x00FF00
+                embed.color = COLOR_GREEN
             elif num == 0:
                 result_progress += CROSS_EMOJI
-                embed.color = 0xFF0000
+                embed.color = COLOR_RED
             else:
                 result_progress += WARNING_EMOJI
-                embed.color = 0xFFFF00
+                embed.color = COLOR_YELLOW
             embed.add_field(name="Test cases", value=result_progress, inline=False)
         else:
             embed.add_field(name="Test cases", value=result_progress, inline=False)
+
+    if details.get("result_state") == "Compile Error":
+            embed.color = COLOR_RED
 
     if "result_runtime" in details:
         embed.add_field(name="Runtime", value=details["result_runtime"])
