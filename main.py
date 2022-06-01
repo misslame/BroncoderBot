@@ -30,25 +30,26 @@ client = discord.Client(intents=intenderinos, activity=activity)
 tree = app_commands.CommandTree(client)
 
 
-persistent_store_cotd = PersistentStore(filename="cotd.json")
-
-store = persistent_store_cotd.get_instance()
+store = PersistentStore.get_instance()
 
 @client.event
 async def on_connect():
 
-    if "title" not in store:
+    if "cotd" not in store:
         print("No existing COTD found, making a new one...")
+        store["cotd"] = {}
         challenge = await getRandomQuestion()
-        for key in challenge:
-            store[key] = challenge[key]
+        store.update({"cotd":challenge}) 
+        # for key in challenge:
+        #     store["cotd"][key] = challenge[key]
+        print(store)
+        title = store["cotd"]["title"]
         store.sync()
-        title = store["title"]
         print(f"\"{title}\" is the new COTD!")
     else:
-        title = store["title"]
+        title = store["cotd"]["title"]
         print(f"\"{title}\" is the current COTD!")
-    await setup(store)
+    await setup(store["cotd"])
 
 
 COOLDOWN_SECONDS = 0
@@ -69,7 +70,7 @@ async def hello(interaction: discord.Interaction):
 @tree.command()
 @app_commands.describe()
 async def cotd(interaction: discord.Interaction):
-    embeds = getProblemEmbeds(store)
+    embeds = getProblemEmbeds(store["cotd"])
     
     await interaction.response.send_message(
         content="Today's challenge:",
@@ -102,7 +103,7 @@ async def submit(
 
     if not submission.get("err"):
 
-        difficulty_str = store["difficulty"]
+        difficulty_str = store["cotd"]["difficulty"]
         difficulties = {"Easy": 1, "Medium": 2, "Hard": 3}
         DIFFICULTY_POINT = difficulties[difficulty_str]
 
@@ -171,7 +172,7 @@ async def testsubmit(interaction: discord.Interaction):
 
     if not submission.get("err"):
 
-        difficulty_str = store["difficulty"]
+        difficulty_str = store["cotd"]["difficulty"]
         difficulties = {"Easy": 1, "Medium": 2, "Hard": 3}
         DIFFICULTY_POINT = difficulties[difficulty_str]
 
