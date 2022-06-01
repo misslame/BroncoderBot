@@ -41,7 +41,7 @@ async def change_problem(interaction: discord.Interaction, title_slug:str):
     await interaction.response.defer()
     await changeProblem(title_slug)
     problem = await getQuestionByTitleSlug(title_slug)
-    store.update(problem)
+    store.update({"cotd": problem})
 
     await interaction.followup.send(f'Set challenge of the day to {problem["title"]}')
     return

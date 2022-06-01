@@ -42,9 +42,7 @@ async def on_connect():
         store.update({"cotd":challenge}) 
         # for key in challenge:
         #     store["cotd"][key] = challenge[key]
-        print(store)
         title = store["cotd"]["title"]
-        store.sync()
         print(f"\"{title}\" is the new COTD!")
     else:
         title = store["cotd"]["title"]

@@ -3,8 +3,10 @@ import json
 from os.path import isfile
 
 class PersistentStore:
+    __instance = None
     def __init__(self, filename='runtime-store.json'):
-        if not hasattr(PersistentStore, '__instance'):
+        if PersistentStore.__instance == None:
+            PersistentStore.__instance = self
             if not isfile(filename):
                 self.__f = open(filename, 'w+')
             else:
@@ -22,8 +24,8 @@ class PersistentStore:
 
     @staticmethod
     def get_instance():
-        if not hasattr(PersistentStore, '__instance'):
-            PersistentStore.__instance = PersistentStore()
+        if PersistentStore.__instance == None:
+            PersistentStore()
 
         return PersistentStore.__instance
 
