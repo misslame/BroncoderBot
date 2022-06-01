@@ -40,8 +40,6 @@ async def on_connect():
         store["cotd"] = {}
         challenge = await getRandomQuestion()
         store.update({"cotd":challenge}) 
-        # for key in challenge:
-        #     store["cotd"][key] = challenge[key]
         title = store["cotd"]["title"]
         print(f"\"{title}\" is the new COTD!")
     else:

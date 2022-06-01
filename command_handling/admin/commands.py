@@ -39,8 +39,11 @@ async def change_problem(interaction: discord.Interaction, title_slug:str):
 
     # TODO: update persistant store
     await interaction.response.defer()
-    await changeProblem(title_slug)
     problem = await getQuestionByTitleSlug(title_slug)
+    if "errors" in problem:
+        await interaction.followup.send(f'There was a problem setting the challenge of the day to {title_slug}')
+        return
+    await changeProblem(title_slug)
     store.update({"cotd": problem})
 
     await interaction.followup.send(f'Set challenge of the day to {problem["title"]}')

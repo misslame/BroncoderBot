@@ -101,4 +101,6 @@ async def getQuestionByTitleSlug(title_slug):
 
     variables = {"titleSlug": title_slug}
     res = requests.get(endpoint, json={"query": query, "variables": variables}).json()
+    if res["data"]["question"] == None:
+        return res
     return res["data"]["question"]
