@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 
 from persistent_store import PersistentStore
-from problem_fetching.problem_fetch import getQuestionByTitleSlug
+from problem_fetching.problem_fetch import getQuestionByTitleSlug, getRandomQuestion
 from submission_handling.selenium import changeProblem
 
 store = PersistentStore.get_instance()
@@ -35,8 +35,7 @@ async def refresh_status(interaction: discord.Interaction):
 
 @app_commands.command(description="Change the problem of the day.")
 @app_commands.describe(title_slug="Problem title slug (the thing after the url)")
-async def change_problem(interaction: discord.Interaction, title_slug:str):
-
+async def change_cotd(interaction: discord.Interaction, title_slug:str):
     # TODO: update persistant store
     await interaction.response.defer()
     problem = await getQuestionByTitleSlug(title_slug)
@@ -49,6 +48,20 @@ async def change_problem(interaction: discord.Interaction, title_slug:str):
     await interaction.followup.send(f'Set challenge of the day to {problem["title"]}')
     return
 
+@app_commands.command(description="Randomize problem of the day")
+async def randomize_cotd(interaction: discord.Interaction):
+    # TODO: update persistant store
+    await interaction.response.defer()
+    problem = await getRandomQuestion()
+    if "errors" in problem:
+        await interaction.followup.send(f'There was a problem setting the challenge of the day to {title_slug}')
+        return
+    await changeProblem(problem["titleSlug"])
+    store.update({"cotd": problem})
+
+    await interaction.followup.send(f'Set challenge of the day to {problem["title"]}')
+    return
+
 __all__ = [
-    'set_admin_role', 'end_early', 'refresh_daily', 'refresh_status', 'change_problem'
+    'set_admin_role', 'end_early', 'refresh_daily', 'refresh_status', 'change_cotd', 'randomize_cotd'
 ]
