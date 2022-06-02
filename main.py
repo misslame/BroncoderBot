@@ -1,7 +1,7 @@
 import sys
 import traceback
 import discord
-from discord import app_commands
+from discord import Color, Guild, Interaction, app_commands
 
 from token_fetching.token_fetch import BOT_TOKEN
 
@@ -20,21 +20,30 @@ tree = app_commands.CommandTree(client)
 @client.event
 async def on_ready():
     print(f'Logged in as {client.user} (ID: {client.user.id})')
+    # Get guild (server) using ID (find better way) - ADD FOR ALL
+    # Need to update for our server
+    guilds = client.guilds
+    # [print(g) for g in guilds]
+    for guild in guilds:
+        role = discord.utils.get(guild.roles, name="Broncoder")
+        # print(role)
+        if role is None: # create role if DNE
+            await guild.create_role(name="Broncoder", color=Color.brand_red())
     await tree.sync()
     print('-------------------------------------')
 
 
 ''' **************************************************
     COMMANDS
-    currenty supported commands:
+    currently supported commands:
         * hello : Say hello.
         * submit : Submit your code.
         * top10: Provides the Top 10 members
         * top: Provides the Top given value members.
         * mypoints: Provides how many points you have.
         * first: Compares you with the first place member.
-        * enroll: Enroll yourself in competition reminders.
-        * unenroll: Remove yourself from the competition reminders.
+        * remindme: Enroll yourself in competition reminders.
+        * stopreminders: Remove yourself from the competition reminders.
 
 ****************************************************'''
 
@@ -118,16 +127,22 @@ async def first(interaction: discord.Interaction):
     await interaction.followup.send(get_first_stats(interaction))
 
 @tree.command(description="Enroll yourself in competition reminders.")
-async def enroll(interaction: discord.Interaction):
-    role = discord.utils.get(interaction.guild.roles, name="Competition Reminders")
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+async def remindme(interaction: discord.Interaction):
+    if('Broncoder' in [u.name for u in interaction.user.roles]):
+        # Add file?
+        await interaction.response.send_message(f'{interaction.user.mention} already has the role assigned')
+    role = discord.utils.get(interaction.guild.roles, name="Broncoder")
     await interaction.user.add_roles(role)
     await interaction.response.send_message(f'Added {interaction.user.mention} to competition')
 
 # only allow people in competitor role to call this
 @tree.command(description="Remove yourself from the competition reminders.")
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+@app_commands.checks.has_role("Broncoder")
 # add error catch to not crash
-async def unenroll(interaction: discord.Interaction):
-    comp_role = discord.utils.get(interaction.guild.roles, name="Competition Reminders")
+async def stopreminders(interaction: discord.Interaction):
+    comp_role = discord.utils.get(interaction.guild.roles, name="Broncoder")
     await interaction.user.remove_roles(comp_role)
     await interaction.response.send_message(f'Removed {interaction.user.mention} from the competition reminders')
 
@@ -148,6 +163,12 @@ async def tree_errors(interaction: discord.Interaction, error: app_commands.AppC
     else:
         print('Ignoring exception in command {}:'.format(interaction.command), file=sys.stderr)
         traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
+
+@stopreminders.error
+async def stopreminders_error(interaction: discord.Interaction, error: app_commands.MissingRole):
+    if isinstance(error, app_commands.MissingRole):
+        file = discord.File("./assets/BroncoBonk.png")
+        await interaction.response.send_message(f'{interaction.user.mention} does not have the reminder role.', file=file)
 
 ParticipantData.get_instance().init_points()
 client.run(BOT_TOKEN)
