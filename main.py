@@ -1,23 +1,25 @@
+
+import sys
 import traceback
-from typing import Literal
 import discord
-from discord import Embed, app_commands
+from discord import Attachment, Color, Guild, Interaction, app_commands
+from typing import Literal
 from discord.ext import commands
 from config.config import BOT_TOKEN
 from messages.problem_view import ProblemView
 from submission_handling.selenium import setup, submitAttachmentToLeetcode
 from messages.embeds import createSubmissionEmbed, createProblemEmbed, getProblemEmbeds
 from problem_fetching.problem_fetch import getRandomQuestion, getQuestionByTitleSlug
-from discord import Attachment, app_commands
-from points_table.points import Points
 from persistent_store import PersistentStore
 
 
 # Modules
+from participant_data_handling.participant_data import ParticipantData
 from command_handling.submission_handler import handle_submission
 from command_handling.rank_list_handler import format_rank_list
+from command_handling.first_handler import get_first_stats
+from command_handling.timeout_handler import COOLDOWN_SECONDS, readable
 from command_handling import admin as admin_commands
-from points_table.points import Points
 
 intenderinos = discord.Intents.default()
 intenderinos.members = True
@@ -28,8 +30,6 @@ activity = discord.activity.Activity(
 
 client = discord.Client(intents=intenderinos, activity=activity)
 tree = app_commands.CommandTree(client)
-
-
 store = PersistentStore.get_instance()
 
 @client.event
@@ -47,16 +47,35 @@ async def on_connect():
         print(f"\"{title}\" is the current COTD!")
     await setup(store["cotd"])
 
-
-COOLDOWN_SECONDS = 0
-
-
 @client.event
 async def on_ready():
-    print(f"Logged in as {client.user} (ID: {client.user.id})")
+    print(f'Logged in as {client.user} (ID: {client.user.id})')
+    # Get guild (server) using ID (find better way) - ADD FOR ALL
+    # Need to update for our server
+    guilds = client.guilds
+    # [print(g) for g in guilds]
+    for guild in guilds:
+        role = discord.utils.get(guild.roles, name="Broncoder")
+        # print(role)
+        if role is None: # create role if DNE
+            await guild.create_role(name="Broncoder", color=Color.brand_red())
     await tree.sync()
     print("-------------------------------------")
 
+
+''' **************************************************
+    COMMANDS
+    currently supported commands:
+        * hello : Say hello.
+        * submit : Submit your code.
+        * top10: Provides the Top 10 members
+        * top: Provides the Top given value members.
+        * mypoints: Provides how many points you have.
+        * first: Compares you with the first place member.
+        * remindme: Enroll yourself in competition reminders.
+        * stopreminders: Remove yourself from the competition reminders.
+
+****************************************************'''
 
 @tree.command(description="Say hello.")
 async def hello(interaction: discord.Interaction):
@@ -72,16 +91,6 @@ async def cotd(interaction: discord.Interaction):
         content="Today's challenge:",
         embed=embeds.get("info"),
         view=ProblemView(embeds),
-    )
-
-
-@tree.command(description="Enroll in competition.")
-async def enroll(interaction: discord.Integration):
-    role = discord.utils.get(interaction.guild.roles,
-                             name="Competition Reminders")
-    await interaction.user.add_roles(role)
-    await interaction.response.send_message(
-        f"Added {interaction.user.mention} to competition"
     )
 
 @tree.command(description="Submit your code.")
@@ -101,7 +110,10 @@ async def submit(
 
         difficulty_str = store["cotd"]["difficulty"]
         difficulties = {"Easy": 1, "Medium": 2, "Hard": 3}
-        DIFFICULTY_POINT = difficulties[difficulty_str]
+        # DIFFICULTY_POINT = difficulties[difficulty_str]
+        # TODO: add up points from first accepted submission bonus!
+        POINTS_RECIEVED = difficulties[difficulty_str]
+        WAS_FIRST_SUBMITION = False
 
         # TODO: add timestamp
 
@@ -121,8 +133,8 @@ async def submit(
         )
 
         if status == "Accepted":
-            Points.get_instance().addPoints(interaction.user.id, DIFFICULTY_POINT)
-            p = Points.get_instance().getPoints(interaction.user.id)
+            ParticipantData.get_instance().update_stats(interaction.user.id,  difficulty_str, POINTS_RECIEVED, WAS_FIRST_SUBMITION)
+            p = ParticipantData.get_instance().get_points(interaction.user.id)
             await interaction.edit_original_message(
                 content=response_message+"\n\n"
                 f"{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point{'s'[:DIFFICULTY_POINT ^ 1]}!\n"
@@ -131,7 +143,6 @@ async def submit(
             )
         else:
             await interaction.edit_original_message(content=response_message,embed=embed)
-
         return
     else:
         await interaction.followup.send(
@@ -181,7 +192,7 @@ async def testsubmit(interaction: discord.Interaction):
 
         completion_percent = submission.get(
             "details").get("result_progress_percent")
-
+    
         status = submission.get(
             "details").get("result_state")
 
@@ -191,7 +202,8 @@ async def testsubmit(interaction: discord.Interaction):
 
         if status == "Accepted":
             Points.get_instance().addPoints(interaction.user.id, DIFFICULTY_POINT)
-            p = Points.get_instance().getPoints(interaction.user.id)
+            ParticipantData.get_instance().update_stats(interaction.user.id,  difficulty_str, DIFFICULTY_POINT,  WAS_FIRST_SUBMITION)
+            p = ParticipantData.get_instance().get_points(interaction.user.id)
             await interaction.edit_original_message(
                 content=response_message+"\n\n"
                 f"{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point{'s'[:DIFFICULTY_POINT ^ 1]}!\n"
@@ -209,38 +221,73 @@ async def testsubmit(interaction: discord.Interaction):
                 msg=submission["msg"], uploader_name=interaction.user.name
             )
         )
-
-@tree.command(description="Returns the Top 10 Users.")
-@app_commands.describe()
+        
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+@tree.command(description="provides the Top 10 members.")
 async def top10(interaction: discord.Interaction):
-    await interaction.response.send_message(
-        await format_rank_list(interaction, Points.get_instance().getTop(10), 10)
-    )
+    await interaction.response.send_message(await format_rank_list(interaction, ParticipantData.get_instance().get_top(10), 10))
 
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+@tree.command(description="Provides the Top given value members.")
+@app_commands.describe(value="What number of the top members you want to see")
+async def top(interaction: discord.Interaction, value: int):
+    await interaction.response.send_message(await format_rank_list(interaction, ParticipantData.get_instance().get_top(value), value))
 
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+@tree.command(description="Provides how many points you have.")
+async def mypoints(interaction: discord.Interaction):
+    await interaction.response.send_message(f'You currently have {ParticipantData.get_instance().get_points(interaction.user.id)} point(s).')
+
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+@tree.command(description="Compares you with the first place member.")
+async def first(interaction: discord.Interaction):
+    await interaction.response.defer()
+    await interaction.followup.send(get_first_stats(interaction))
+
+@tree.command(description="Enroll yourself in competition reminders.")
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+async def remindme(interaction: discord.Interaction):
+    if('Broncoder' in [u.name for u in interaction.user.roles]):
+        # Add file?
+        await interaction.response.send_message(f'{interaction.user.mention} already has the role assigned')
+    role = discord.utils.get(interaction.guild.roles, name="Broncoder")
+    await interaction.user.add_roles(role)
+    await interaction.response.send_message(f'Added {interaction.user.mention} to competition')
+
+# only allow people in competitor role to call this
+@tree.command(description="Remove yourself from the competition reminders.")
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+@app_commands.checks.has_role("Broncoder")
+# add error catch to not crash
+async def stopreminders(interaction: discord.Interaction):
+    comp_role = discord.utils.get(interaction.guild.roles, name="Broncoder")
+    await interaction.user.remove_roles(comp_role)
+    await interaction.response.send_message(f'Removed {interaction.user.mention} from the competition reminders')
+
+@tree.command(description="Display your personal stats")
+async def get_stats(interaction: discord.Interaction):
+    await interaction.response.defer()
+    
+    ParticipantData.get_instance().add_participant(interaction.user.id)
+    await interaction.followup.send(f'{interaction.user.mention} stats:' + ParticipantData.get_instance().get_participant_printed_stats(interaction.user.id))
+
+'''******************************************************
+    ERROR HANDLING
+******************************************************'''
 @tree.error
-async def tree_errors(
-    interaction: discord.Interaction, error: app_commands.AppCommandError
-):
+async def tree_errors(interaction: discord.Interaction, error: app_commands.AppCommandError):
     if isinstance(error, app_commands.CommandOnCooldown):
-        await interaction.response.send_message(
-            f"You are on cooldown. Try again in {readable(int(error.cooldown.get_retry_after()))}",
-            ephemeral=True,
-        )
+        await interaction.response.send_message(f"You are on cooldown. Try again in {readable(int(error.cooldown.get_retry_after()))}", ephemeral=True)
     else:
-        traceback.print_exception(type(error), error, error.__traceback__)
+        print('Ignoring exception in command {}:'.format(interaction.command), file=sys.stderr)
+        traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
+@stopreminders.error
+async def stopreminders_error(interaction: discord.Interaction, error: app_commands.MissingRole):
+    if isinstance(error, app_commands.MissingRole):
+        file = discord.File("./assets/BroncoBonk.png")
+        await interaction.response.send_message(f'{interaction.user.mention} does not have the reminder role.', file=file)
 
-def readable(seconds: int):
-    h = seconds // 3600
-    m = (seconds % 3600) // 60
-    s = (seconds % 3600) % 60
-
-    times = {"hour": h, "minute": m, "second": s}
-
-    return " and ".join([f"{v} {k}{'s'[:v ^ 1]}" for k, v in times.items() if v])
-
-
-Points.get_instance().init_points()
+ParticipantData.get_instance().init_points()
 admin_commands.map_commands(tree)
 client.run(BOT_TOKEN)

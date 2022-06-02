@@ -1,8 +1,5 @@
 __pycache__/
-token_fetching/token.txt
 .vscode
-points_table/pointsData.txt
-points_table/pointsData.json
 .env
-venv/
 *.json
+*.txt
