@@ -14,7 +14,7 @@ Setting up and testing...
 Need to add the requirements.txt
 > git clone https://github.com/misslame/BroncoderBot.git \
 > cd BroncoderBot \
-> pip install dot-env \
+> pip install python-dotenv \
 > pip install -U git+https://github.com/Rapptz/discord.py
 
 ## Follow any of these guides to setup and invite the bot to the test channel

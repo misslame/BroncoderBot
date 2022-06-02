@@ -1,19 +1,19 @@
 import discord
 
-from points_table.points import Points
+from participant_data_handling.participant_data import ParticipantData
 
 def get_first_stats(interaction: discord.Interaction):
     days_left = 31 #TODO: Get this dynamically!
     seconds_left = 100 #TODO: Get this dynamically!
 
-    first_place = interaction.guild.get_member(int(Points.get_instance().getTop(1)[0])).display_name
+    first_place = interaction.guild.get_member(int(ParticipantData.get_instance().get_top(1)[0])).display_name
     response_message = f'{first_place} is first!'
 
     
     if(first_place == interaction.user.display_name): # first place is triggering command!
-        response_message = f'You are first place! Keep it up, you have {Points.get_instance().getPoints(interaction.user.id)} point(s)!\n'
+        response_message = f'You are first place! Keep it up, you have {ParticipantData.get_instance().get_points(interaction.user.id)} point(s)!\n'
     else:
-        points_behind = Points.get_instance().getTop(1) - Points.get_instance().getPoints(interaction.user.id)
+        points_behind = ParticipantData.get_instance().get_top(1) - ParticipantData.get_instance().get_points(interaction.user.id)
         response_message = f'{first_place} is in first place! You are {points_behind} point(s) behind them!'
 
 
