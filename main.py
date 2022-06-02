@@ -141,12 +141,6 @@ async def stopreminders(interaction: discord.Interaction):
     await interaction.user.remove_roles(comp_role)
     await interaction.response.send_message(f'Removed {interaction.user.mention} from the competition reminders')
 
-@stopreminders.error
-async def stopreminders_error(interaction: discord.Interaction, error: app_commands.MissingRole):
-    if isinstance(error, app_commands.MissingRole):
-        file = discord.File("./assets/BroncoBonk.png")
-        await interaction.response.send_message(f'{interaction.user.mention} does not have the reminder role.', file=file)
-
 '''******************************************************
     ERROR HANDLING
 ******************************************************'''
@@ -155,5 +149,13 @@ async def tree_errors(interaction: discord.Interaction, error: app_commands.AppC
     if isinstance(error, app_commands.CommandOnCooldown):
         await interaction.response.send_message(f"You are on cooldown. Try again in {readable(int(error.cooldown.get_retry_after()))}", ephemeral=True)
 
+@stopreminders.error
+async def stopreminders_error(interaction: discord.Interaction, error: app_commands.MissingRole):
+    if isinstance(error, app_commands.MissingRole):
+        file = discord.File("./assets/BroncoBonk.png")
+        await interaction.response.send_message(f'{interaction.user.mention} does not have the reminder role.', file=file)
+
 Points.get_instance().init_points()
 client.run(BOT_TOKEN)
+
+
