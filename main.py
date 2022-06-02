@@ -58,7 +58,7 @@ async def on_ready():
         role = discord.utils.get(guild.roles, name="Broncoder")
         # print(role)
         if role is None: # create role if DNE
-            await guild.create_role(name="Broncoder", color=Color.brand_red())
+             await guild.create_role(name="Broncoder", color=Color.brand_red())
     await tree.sync()
     print("-------------------------------------")
 
@@ -110,9 +110,8 @@ async def submit(
 
         difficulty_str = store["cotd"]["difficulty"]
         difficulties = {"Easy": 1, "Medium": 2, "Hard": 3}
-        # DIFFICULTY_POINT = difficulties[difficulty_str]
+        DIFFICULTY_POINT = difficulties[difficulty_str]
         # TODO: add up points from first accepted submission bonus!
-        POINTS_RECIEVED = difficulties[difficulty_str]
         WAS_FIRST_SUBMITION = False
 
         # TODO: add timestamp
@@ -133,7 +132,7 @@ async def submit(
         )
 
         if status == "Accepted":
-            ParticipantData.get_instance().update_stats(interaction.user.id,  difficulty_str, POINTS_RECIEVED, WAS_FIRST_SUBMITION)
+            ParticipantData.get_instance().update_stats(interaction.user.id,  difficulty_str, DIFFICULTY_POINT, WAS_FIRST_SUBMITION)
             p = ParticipantData.get_instance().get_points(interaction.user.id)
             await interaction.edit_original_message(
                 content=response_message+"\n\n"
@@ -143,7 +142,6 @@ async def submit(
             )
         else:
             await interaction.edit_original_message(content=response_message,embed=embed)
-        return
     else:
         await interaction.followup.send(
             content="",
@@ -182,6 +180,7 @@ async def testsubmit(interaction: discord.Interaction):
         difficulty_str = store["cotd"]["difficulty"]
         difficulties = {"Easy": 1, "Medium": 2, "Hard": 3}
         DIFFICULTY_POINT = difficulties[difficulty_str]
+        WAS_FIRST_SUBMITION = False
 
         # TODO: add timestamp
 
@@ -201,7 +200,7 @@ async def testsubmit(interaction: discord.Interaction):
         )
 
         if status == "Accepted":
-            Points.get_instance().addPoints(interaction.user.id, DIFFICULTY_POINT)
+            # Points.get_instance().addPoints(interaction.user.id, DIFFICULTY_POINT)  # we're not using this anymore, right?
             ParticipantData.get_instance().update_stats(interaction.user.id,  difficulty_str, DIFFICULTY_POINT,  WAS_FIRST_SUBMITION)
             p = ParticipantData.get_instance().get_points(interaction.user.id)
             await interaction.edit_original_message(
