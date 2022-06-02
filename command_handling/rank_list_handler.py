@@ -1,5 +1,5 @@
 import discord
-from points_table.points import Points
+from participant_data_handling.participant_data import ParticipantData
 
 async def format_rank_list(interaction: discord.Interaction, list : list[str], top : int):
     if len(list) >= 1:
@@ -7,7 +7,7 @@ async def format_rank_list(interaction: discord.Interaction, list : list[str], t
 
         count = 1
         for user in list:
-            response_message += f'{count}.{interaction.guild.get_member(int(user)).display_name} [{Points.get_instance().getPoints(user)} point(s)]\n'
+            response_message += f'{count}.{interaction.guild.get_member(int(user)).display_name} [{ParticipantData.get_instance().get_points(user)} point(s)]\n'
             count += 1
 
         return response_message + '```'
