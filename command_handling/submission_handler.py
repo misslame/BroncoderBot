@@ -1,4 +1,6 @@
 import discord
+from submission_handling.selenium import submitAttachmentToLeetcode
+from messages.embeds import createSubmissionEmbed
 
 '''
 Dictionary of supported languages
@@ -18,31 +20,37 @@ supported_languages = {
 
 async def handle_submission(interaction: discord.Interaction, attachment: discord.Attachment, language: str):
     ''' ** TESTING ** '''
-    await interaction.channel.send(f'The file uploaded was: {attachment.content_type} language submitted is {language}')
+    # await interaction.channel.send(f'The file uploaded was: {attachment.content_type} language submitted is {language}')
 
-    successful_submission = False
+    response_message = f'Thanks for uploading, {interaction.user.display_name}! Recieved {language} file: {attachment.filename}.'
+    wait_message = "\n\nPlease wait while we check your submission..."
 
-    response_message = f'Thanks for uploading, {interaction.user.display_name}!. Recieved file: {attachment.filename}\n'
-
+    await interaction.followup.send(response_message+wait_message)
+    
+    submission = await submitAttachmentToLeetcode(attachment, language)
+    
+    return submission
+    
+    submission = None
     extension = get_extension(language)
     if(extension is not None): # found as a supported language
         if(verify_language(attachment, language.lower(), extension)):
             # valid file extension / language
-            print('Valid file was submitted.')
+            # print('Valid file was submitted.')
             submited_file = await attachment.read(use_cached=False)
             file_contents = submited_file.decode('utf-8')
 
             ''' ** TESTING ** '''
-            await interaction.channel.send(f'File Content is {file_contents}')
+            # await interaction.channel.send(f'File Content is {file_contents}')
 
-            #TODO: successful_submission = METHOD_TO_VERIFY(file_contents)
-            successful_submission = True
+            submission = await submitAttachmentToLeetcode(attachment, language)
+
         else:
             response_message += f'You indicated a {language} submission, that is not a python file!'
 
     await interaction.followup.send(response_message)
 
-    return successful_submission
+    return submission
 
 
 def get_extension(language_alias): #Finds the key that has the following language alias as a value

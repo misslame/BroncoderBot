@@ -1,9 +1,17 @@
+
 import sys
 import traceback
 import discord
-from discord import Color, Guild, Interaction, app_commands
+from discord import Attachment, Color, Guild, Interaction, app_commands
+from typing import Literal
+from discord.ext import commands
+from config.config import BOT_TOKEN
+from messages.problem_view import ProblemView
+from submission_handling.selenium import setup, submitAttachmentToLeetcode
+from messages.embeds import createSubmissionEmbed, createProblemEmbed, getProblemEmbeds
+from problem_fetching.problem_fetch import getRandomQuestion, getQuestionByTitleSlug
+from persistent_store import PersistentStore
 
-from token_fetching.token_fetch import BOT_TOKEN
 
 # Modules
 from participant_data_handling.participant_data import ParticipantData
@@ -11,11 +19,33 @@ from command_handling.submission_handler import handle_submission
 from command_handling.rank_list_handler import format_rank_list
 from command_handling.first_handler import get_first_stats
 from command_handling.timeout_handler import COOLDOWN_SECONDS, readable
+from command_handling import admin as admin_commands
 
 intenderinos = discord.Intents.default()
 intenderinos.members = True
-client = discord.Client(intents=intenderinos)
+
+activity = discord.activity.Activity(
+    type=discord.ActivityType.competing, name="Leetcode"
+)
+
+client = discord.Client(intents=intenderinos, activity=activity)
 tree = app_commands.CommandTree(client)
+store = PersistentStore.get_instance()
+
+@client.event
+async def on_connect():
+
+    if "cotd" not in store:
+        print("No existing COTD found, making a new one...")
+        store["cotd"] = {}
+        challenge = await getRandomQuestion()
+        store.update({"cotd":challenge}) 
+        title = store["cotd"]["title"]
+        print(f"\"{title}\" is the new COTD!")
+    else:
+        title = store["cotd"]["title"]
+        print(f"\"{title}\" is the current COTD!")
+    await setup(store["cotd"])
 
 @client.event
 async def on_ready():
@@ -28,9 +58,9 @@ async def on_ready():
         role = discord.utils.get(guild.roles, name="Broncoder")
         # print(role)
         if role is None: # create role if DNE
-            await guild.create_role(name="Broncoder", color=Color.brand_red())
+             await guild.create_role(name="Broncoder", color=Color.brand_red())
     await tree.sync()
-    print('-------------------------------------')
+    print("-------------------------------------")
 
 
 ''' **************************************************
@@ -49,61 +79,148 @@ async def on_ready():
 
 @tree.command(description="Say hello.")
 async def hello(interaction: discord.Interaction):
-    await interaction.response.send_message(f'Hi, {interaction.user.mention}')
+    await interaction.response.send_message(f"Hi, {interaction.user.mention}")
+
+
+@tree.command()
+@app_commands.describe()
+async def cotd(interaction: discord.Interaction):
+    embeds = getProblemEmbeds(store["cotd"])
+    
+    await interaction.response.send_message(
+        content="Today's challenge:",
+        embed=embeds.get("info"),
+        view=ProblemView(embeds),
+    )
 
 @tree.command(description="Submit your code.")
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
-@app_commands.describe(attachment="The code to submit", language="progamming language")
-async def submit(interaction: discord.Interaction, attachment: discord.Attachment, language: str):
+@app_commands.describe(attachment="The code to submit", language="Progamming language")
+async def submit(
+    interaction: discord.Interaction, attachment: discord.Attachment, language: Literal['C++', 'Java', 'Python', 'Python3', 'C', 'C#', 'JavaScript', 'Ruby', 'Swift',
+                                                                                        'Go', 'Scala', 'Kotlin', 'Rust', 'PHP', 'TypeScript', 'Racket', 'Erlang', 'Elixir']
+):
     await interaction.response.defer()
-    successful_submission = await handle_submission(interaction, attachment, language)
-    if (successful_submission):
-        # TODO: THE FOLLOWING ATTRIBUTES
-        DIFFICULTY = "hard"  # TEMPORARY
+    submission = await handle_submission(interaction, attachment, language)
+    # print(submission)
+
+    response_message = f'Thanks for uploading, {interaction.user.display_name}! Recieved {language} file: {attachment.filename}.'
+
+    if not submission.get("err"):
+
+        difficulty_str = store["cotd"]["difficulty"]
+        difficulties = {"Easy": 1, "Medium": 2, "Hard": 3}
+        DIFFICULTY_POINT = difficulties[difficulty_str]
+        # TODO: add up points from first accepted submission bonus!
         WAS_FIRST_SUBMITION = False
-        POINTS_RECIEVED = 3
 
-        ParticipantData.get_instance().update_stats(interaction.user.id,  DIFFICULTY, POINTS_RECIEVED, WAS_FIRST_SUBMITION)
         # TODO: add timestamp
-        await interaction.channel.send(
-            f'{interaction.user.mention} has submited their solution and recieved {POINTS_RECIEVED} point(s)!')
 
-        ''' ** TESTING ** '''
-        await interaction.channel.send(
-            f'{interaction.user.mention} now has {ParticipantData.get_instance().get_points(interaction.user.id)} point(s)!')
+        # check cooldown
+        # app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 
-        return
+        """ ** TESTING ** """
+
+        completion_percent = submission.get(
+            "details").get("result_progress_percent")
+
+        status = submission.get(
+            "details").get("result_state")
+
+        embed = createSubmissionEmbed(
+            details=submission["details"], uploader_name=interaction.user.name
+        )
+
+        if status == "Accepted":
+            ParticipantData.get_instance().update_stats(interaction.user.id,  difficulty_str, DIFFICULTY_POINT, WAS_FIRST_SUBMITION)
+            p = ParticipantData.get_instance().get_points(interaction.user.id)
+            await interaction.edit_original_message(
+                content=response_message+"\n\n"
+                f"{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point{'s'[:DIFFICULTY_POINT ^ 1]}!\n"
+                f"{interaction.user.mention} now has {p} point{'s'[:p ^ 1]}!",
+                embed=embed,
+            )
+        else:
+            await interaction.edit_original_message(content=response_message,embed=embed)
+    else:
+        await interaction.followup.send(
+            content="",
+            embed=createSubmissionEmbed(
+                msg=submission["msg"], uploader_name=interaction.user.name
+            )
+        )
+
 
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="Test Submit Command.")
 async def testsubmit(interaction: discord.Interaction):
     await interaction.response.defer()
-    data = {'filename': 'TEST.py', 'id': 980005177400643624,
-            'proxy_url': 'https://cdn.discordapp.com/attachments/979971398753742859/980005541902430238/TEST.py',
-            'size': 17,
-            'url': 'https://cdn.discordapp.com/attachments/979971398753742859/980005541902430238/TEST.py',
-            'spoiler': False, 'content_type': 'text/x-python; charset=utf-8'}
-    attachment, language = discord.Attachment(
-        data=data, state=interaction.client._get_state()), "python"
-    successful_submission = await handle_submission(interaction, attachment, language)
+    data = {
+        "filename": "racket.rkt",
+        "id": 981136663499669554,
+        "proxy_url": "https://cdn.discordapp.com/attachments/979971398753742859/981136663499669554/racket.racket.txt",
+        "size": 17,
+        "url": "https://cdn.discordapp.com/attachments/979971398753742859/981136663499669554/racket.racket.txt",
+        "spoiler": False,
+        "content_type": "text; charset=utf-8",
+    }
+    attachment, language = (
+        discord.Attachment(data=data, state=interaction.client._get_state()),
+        "Racket",
+    )
 
-    if (successful_submission):
-        # TODO: THE FOLLOWING ATTRIBUTES
-        DIFFICULTY = "hard"  # TEMPORARY
+
+    submission = await handle_submission(interaction, attachment, language)
+    # print(submission)
+
+    response_message = f'Thanks for uploading, {interaction.user.display_name}! Recieved {language} file: {attachment.filename}.'
+
+    if not submission.get("err"):
+
+        difficulty_str = store["cotd"]["difficulty"]
+        difficulties = {"Easy": 1, "Medium": 2, "Hard": 3}
+        DIFFICULTY_POINT = difficulties[difficulty_str]
         WAS_FIRST_SUBMITION = False
-        POINTS_RECIEVED = 3
 
-        ParticipantData.get_instance().update_stats(interaction.user.id,  DIFFICULTY, POINTS_RECIEVED,  WAS_FIRST_SUBMITION)
         # TODO: add timestamp
-        await interaction.channel.send(
-            f'{interaction.user.mention} has submited their solution and recieved {POINTS_RECIEVED} point(s)!')
 
-        ''' ** TESTING ** '''
-        await interaction.channel.send(
-            f'{interaction.user.mention} now has {ParticipantData.get_instance().get_points(interaction.user.id)} point(s)!')
+        # check cooldown
+        # app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+
+        """ ** TESTING ** """
+
+        completion_percent = submission.get(
+            "details").get("result_progress_percent")
+    
+        status = submission.get(
+            "details").get("result_state")
+
+        embed = createSubmissionEmbed(
+            details=submission["details"], uploader_name=interaction.user.name
+        )
+
+        if status == "Accepted":
+            # Points.get_instance().addPoints(interaction.user.id, DIFFICULTY_POINT)  # we're not using this anymore, right?
+            ParticipantData.get_instance().update_stats(interaction.user.id,  difficulty_str, DIFFICULTY_POINT,  WAS_FIRST_SUBMITION)
+            p = ParticipantData.get_instance().get_points(interaction.user.id)
+            await interaction.edit_original_message(
+                content=response_message+"\n\n"
+                f"{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point{'s'[:DIFFICULTY_POINT ^ 1]}!\n"
+                f"{interaction.user.mention} now has {p} point{'s'[:p ^ 1]}!",
+                embed=embed,
+            )
+        else:
+            await interaction.edit_original_message(content=response_message,embed=embed)
 
         return
-
+    else:
+        await interaction.edit_original_message(
+            content="",
+            embed=createSubmissionEmbed(
+                msg=submission["msg"], uploader_name=interaction.user.name
+            )
+        )
+        
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="provides the Top 10 members.")
 async def top10(interaction: discord.Interaction):
@@ -171,4 +288,5 @@ async def stopreminders_error(interaction: discord.Interaction, error: app_comma
         await interaction.response.send_message(f'{interaction.user.mention} does not have the reminder role.', file=file)
 
 ParticipantData.get_instance().init_points()
+admin_commands.map_commands(tree)
 client.run(BOT_TOKEN)
