@@ -7,7 +7,7 @@ Dictionary of supported languages
 key: file extension
 value: language aliases
 '''
-supported_languages = {
+SUPPORTED_LANGUAGES = {
     'py' : ["python", "py"],
     'java' : ["java"],
     'cs' : ["c#", "cs", "csharp"],
@@ -23,14 +23,12 @@ async def handle_submission(interaction: discord.Interaction, attachment: discor
     # await interaction.channel.send(f'The file uploaded was: {attachment.content_type} language submitted is {language}')
 
     response_message = f'Thanks for uploading, {interaction.user.display_name}! Recieved {language} file: {attachment.filename}.'
-    wait_message = "\n\nPlease wait while we check your submission..."
+    response_message += "\n\nPlease wait while we check your submission..."
 
-    await interaction.followup.send(response_message+wait_message)
-    
-    submission = await submitAttachmentToLeetcode(attachment, language)
-    
-    return submission
-    
+    await interaction.followup.send(response_message)
+    return await submitAttachmentToLeetcode(attachment, language)
+
+    '''
     submission = None
     extension = get_extension(language)
     if(extension is not None): # found as a supported language
@@ -51,10 +49,10 @@ async def handle_submission(interaction: discord.Interaction, attachment: discor
     await interaction.followup.send(response_message)
 
     return submission
-
+    '''
 
 def get_extension(language_alias): #Finds the key that has the following language alias as a value
-    for extension, language_aliases in supported_languages.items():
+    for extension, language_aliases in SUPPORTED_LANGUAGES.items():
         if language_alias in language_aliases:
             return extension
     return None
