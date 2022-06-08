@@ -3,6 +3,12 @@ import traceback
 import discord
 from discord import Attachment, Color, Guild, Interaction, app_commands
 from typing import Literal
+import zoneinfo
+from datetime import time
+
+from discord.ext import tasks
+
+from points_table.points import Points
 
 # IMPORTED CONSTANTS:
 from config.config import BOT_TOKEN
@@ -69,7 +75,8 @@ async def on_ready():
         if role is None: # create role if DNE
             await guild.create_role(name="Broncoder", color=Color.brand_red())
     await tree.sync()
-    print("-------------------------------------")
+    print('-------------------------------------')
+    daily_announcement.start()
 
 
 ''' **************************************************
@@ -314,6 +321,26 @@ async def stopreminders_error(interaction: discord.Interaction, error: app_comma
         file = discord.File("./assets/BroncoBonk.png")
         await interaction.response.send_message(f'{interaction.user.mention} does not have the reminder role.', file=file)
 
-ParticipantData.get_instance().init_points()
+
+'''******************************************************
+    ANNOUNCEMENT HANDLING
+******************************************************'''
+
+ANNOUNCEMENT_CHANNEL_ID = 833465079559094312
+tz =  zoneinfo.ZoneInfo('PST8PDT')
+# 7:30 am
+ANNOUNCEMENT_TIME = time(hour=7, minute=30, tzinfo=tz)
+
+@tasks.loop(time=ANNOUNCEMENT_TIME)
+async def daily_announcement():
+    message_channel = client.get_channel(ANNOUNCEMENT_CHANNEL_ID)
+    await message_channel.send('This announcement happens at 7:30am PST.')
+
+
+@daily_announcement.before_loop
+async def before():
+    await client.wait_until_ready()
+
+Points.get_instance().init_points()
 admin_commands.map_commands(tree)
 client.run(BOT_TOKEN)
