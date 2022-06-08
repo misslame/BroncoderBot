@@ -8,8 +8,6 @@ from datetime import time
 
 from discord.ext import tasks
 
-from points_table.points import Points
-
 # IMPORTED CONSTANTS:
 from config.config import BOT_TOKEN
 from command_handling.timeout_handler import COOLDOWN_SECONDS
@@ -341,6 +339,9 @@ async def daily_announcement():
 async def before():
     await client.wait_until_ready()
 
-Points.get_instance().init_points()
+'''******************************************************
+    Run
+******************************************************'''
+ParticipantData.get_instance().init_points()
 admin_commands.map_commands(tree)
 client.run(BOT_TOKEN)
