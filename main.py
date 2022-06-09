@@ -1,4 +1,3 @@
-from multiprocessing.dummy import Array
 import sys
 import traceback
 import discord
@@ -115,7 +114,7 @@ greeting = ["greeting", "aloha", "good afternoon", "good day", "good evening", "
 
 ''' ---------- FUN ---------- '''
 @tree.command(description="Say hello.")
-#@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 async def hello(interaction: discord.Interaction):
     entry = random.randrange(0,len(greeting) - 1)
     await interaction.response.send_message(f'{greeting[entry]} {interaction.user.mention}')
