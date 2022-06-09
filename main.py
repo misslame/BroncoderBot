@@ -60,6 +60,7 @@ async def on_connect(): # Before on_ready
         print(f"\"{title}\" is the current COTD!")
     await setup(store["cotd"])
 
+
 @client.event
 async def on_ready():
     print(f'Logged in as {client.user} (ID: {client.user.id})')
@@ -105,6 +106,7 @@ async def on_ready():
 ****************************************************'''
 
 ''' ---------- FUN ---------- '''
+
 @tree.command(description="Say hello.")
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 async def hello(interaction: discord.Interaction):
