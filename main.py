@@ -1,7 +1,7 @@
 import sys
 import traceback
 import discord
-from discord import Attachment, Color, Guild, Interaction, app_commands
+from discord import Attachment, Color, Guild, Interaction, Role, app_commands
 from typing import Literal
 import zoneinfo
 from datetime import time
@@ -232,6 +232,20 @@ async def stopreminders(interaction: discord.Interaction):
 '''************************************************
     Temporary & Testing Commands
 ************************************************'''
+@tree.command(description="Test announcement command.")
+async def test_start_announcement(interaction: discord.Interaction):
+    role = discord.utils.get(interaction.guild.roles, name="Broncoder")
+    await interaction.response.send_message(f'{role.mention}s, today is the day! The start of the competition.\n\n__Reminders:__\n • Please partricipate in good faith.\n • Challenges are posted at TIME_SELECTED.\n • Submit solution files either through DM to me or in @MENTION_BOT_CHANNEL through the /submit command. \n\n **Happy trotting, Broncoders!**')
+
+@tree.command(description="Test announcement command.")
+async def test_lastday_announcement(interaction: discord.Interaction):
+    role = role = discord.utils.get(interaction.guild.roles, name="Broncoder")
+    await interaction.response.send_message(f'{role.mention}s, Trotting ends today. You have TIME_LEFT hours left to complete the last challange. First place will be announced TIME_ANNOUNCED.')
+
+@tree.command(description="Test announcement command.")
+async def test_end_announcement(interaction: discord.Interaction):
+    role = role = discord.utils.get(interaction.guild.roles, name="Broncoder")
+    await interaction.response.send_message(f'Welp...TIMES UP, {role.mention}s!\n\nCompetition is up! :tada: **Congrats to FIRST_PLACE!** :tada: \n\n Look forward to future monthly competitions!')
 
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="Test Submit Command.")
