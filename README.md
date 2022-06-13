@@ -11,11 +11,11 @@ Setting up and testing...
 
 ## Installation
 
-Need to add the requirements.txt
 > git clone https://github.com/misslame/BroncoderBot.git \
 > cd BroncoderBot \
-> pip install python-dotenv \
-> pip install -U git+https://github.com/Rapptz/discord.py
+> pip install -r requirements.txt 
+
+[Install Chrome Driver for Selenium here](https://chromedriver.chromium.org/home)
 
 ## Follow any of these guides to setup and invite the bot to the test channel
 
