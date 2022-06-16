@@ -299,17 +299,17 @@ async def stopreminders(interaction: discord.Interaction):
 async def testsubmit(interaction: discord.Interaction):
     await interaction.response.defer()
     data = {
-        "filename": "racket.rkt",
+        "filename": "test_submit_python.txt",
         "id": 981136663499669554,
-        "proxy_url": "https://cdn.discordapp.com/attachments/979971398753742859/981136663499669554/racket.racket.txt",
+        "proxy_url": "https://cdn.discordapp.com/attachments/846269630838603796/986811994952851456/test_submit_python.txt",
         "size": 17,
-        "url": "https://cdn.discordapp.com/attachments/979971398753742859/981136663499669554/racket.racket.txt",
+        "url": "https://cdn.discordapp.com/attachments/846269630838603796/986811994952851456/test_submit_python.txt",
         "spoiler": False,
         "content_type": "text; charset=utf-8",
     }
     attachment, language = (
         discord.Attachment(data=data, state=interaction.client._get_state()),
-        "Racket",
+        "Python",
     )
 
     submission = await handle_submission(interaction, attachment, language)
