@@ -16,7 +16,9 @@ def get_first_stats(interaction: discord.Interaction):
     ):  # first place is triggering command!
         response_message = f"You are first place! Keep it up, you have {ParticipantData.get_instance().get_points(interaction.user.id)} point(s)!\n"
     else:
-        points_behind = ParticipantData.get_instance().get_points(first_id) - ParticipantData.get_instance().get_points(interaction.user.id)
+        points_behind = ParticipantData.get_instance().get_points(
+            first_id
+        ) - ParticipantData.get_instance().get_points(interaction.user.id)
         response_message = f"{first_place} is in first place! You are {points_behind} point(s) behind them!"
 
     if days_left > 0:
