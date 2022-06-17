@@ -28,13 +28,13 @@ class Participant:
         return json.dumps(self, default=lambda x: x.__dict__, sort_keys=True, indent=2)
 
     def to_string(self):
-        result = "\ntotal_points: " + str(self.total_points)
-        result += "\nproblems solved: " + str(self.problems_solved)
-        result += "\nEasy problems solved: " + str(self.easy)
-        result += "\nMedium problems solved: " + str(self.medium)
-        result += "\nhard problems solved: " + str(self.hard)
+        result = "\nTotal Points: " + str(self.total_points)
+        result += "\nProblems Solved: " + str(self.problems_solved)
+        result += "\nEasy Problems Solved: " + str(self.easy)
+        result += "\nMedium Problems Solved: " + str(self.medium)
+        result += "\nHard Problems Solved: " + str(self.hard)
         result += "\nCompetitions won: " + str(self.won)
-        result += "\nfirst submissions: " + str(self.first)
+        result += "\nFirst Submissions: " + str(self.first)
         return result
 
     def get_points(self):
