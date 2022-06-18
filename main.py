@@ -1,7 +1,7 @@
 import sys
 import traceback
 import discord
-from discord import Attachment, Color, Guild, Interaction, app_commands
+from discord import Attachment, Color, Embed, Guild, Interaction, app_commands
 from typing import Literal
 import zoneinfo
 from datetime import time
@@ -250,11 +250,16 @@ async def get_stats(interaction: discord.Interaction):
     await interaction.response.defer()
 
     ParticipantData.get_instance().add_participant(interaction.user.id)
+    participant_stats_embed = discord.Embed(
+        title=f"{interaction.user.display_name}'s Stats:", 
+        description=ParticipantData.get_instance().get_participant_printed_stats(interaction.user.id),
+        color=discord.Color.from_str("#FFB500")
+    )
+    participant_stats_embed.set_thumbnail(url=interaction.user.display_avatar.url)
+    participant_stats_embed.add_field(name="Badge", value=ParticipantData.get_instance().get_badge(interaction.user.id))
+    
     await interaction.followup.send(
-        f"{interaction.user.mention} stats:"
-        + ParticipantData.get_instance().get_participant_printed_stats(
-            interaction.user.id
-        )
+        embed=participant_stats_embed
     )
 
 
@@ -374,14 +379,13 @@ def admin_permissions(interaction: discord.Interaction) -> bool:
 
 '''
 @app_commands.check(admin_permissions)
-@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="Grant temp points")
-@app_commands.describe(point_value="Point Amount")
-async def givepoints(interaction: discord.Interaction, point_value: int):
+@app_commands.describe(setting="Target Category", point_value="Point Amount")
+async def givepoints(interaction: discord.Interaction, setting:str, point_value: int):
     await interaction.response.send_message(
         f"I have updated your point value for {interaction.user.id}"
     )
-    ParticipantData.get_instance().add_points(interaction.user.id, point_value)
+    ParticipantData.get_instance().add_points(interaction.user.id, setting, point_value)
 '''
 
 """******************************************************

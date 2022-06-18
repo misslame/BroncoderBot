@@ -15,8 +15,6 @@ Setting up and testing...
 > cd BroncoderBot \
 > pip install -r requirements.txt 
 
-[Install Chrome Driver for Selenium here](https://chromedriver.chromium.org/home)
-
 ## Follow any of these guides to setup and invite the bot to the test channel
 
 [Creating a bot account](https://discordpy.readthedocs.io/en/stable/discord.html#discord-intro)

@@ -52,11 +52,11 @@ class ParticipantData:
 
     '''
     """NOT FOR PUBLIC USE: internal method only. """
-    def add_points(self, userID: int, points=1):
+    def add_points(self, userID: int, setting: str, points=1):
         userID = str(userID)
         if self.participants_stats.get(userID) == None:
             self.add_participant(userID)
-        self.participants_stats[userID].update_stats(userID, points, False)
+        self.participants_stats[userID].test_stats(setting, points)
         #updates personal stats for participant
     '''
 
@@ -85,6 +85,12 @@ class ParticipantData:
         if self.participants_stats.get(userID) == None:
             self.add_participant(userID)
         return self.participants_stats[userID].get_points()
+
+    def get_badge(self, userID: int):
+        userID = str(userID)
+        if self.participants_stats.get(userID) == None:
+            self.add_participant(userID)
+        return self.participants_stats[userID].get_badge_title()
 
     def update_win_stats(self, userID: int):
         self.participants_stats[userID].update_win()
