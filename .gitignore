@@ -1,5 +1,7 @@
-*/__pycache__/
-token_fetching/token.txt
+__pycache__/
 .vscode
-points_table/pointsData.txt
 .env
+.idea/
+.venv/
+*.json
+*.txt
