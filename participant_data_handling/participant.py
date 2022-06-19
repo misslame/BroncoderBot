@@ -58,8 +58,8 @@ class Participant:
         self.problems_solved += 1
         self.total_points += points_recieved
         self.first += 1 if was_first else 0
-    
-    '''
+
+    """
     def test_stats(self, setting: str, point_amount: int):
         if (setting == "first"):
             self.first += point_amount
@@ -75,8 +75,8 @@ class Participant:
             self.problems_solved += point_amount
         elif setting == "win":
             self.won += point_amount
-    '''
-    
+    """
+
     def get_badge_title(self):
         PROBLEM_THRESHOLD = 20
         POINT_THRESHOLD = 100
@@ -85,26 +85,30 @@ class Participant:
 
         badge_title = "No badge... Do some problems to earn a badge!"
 
-        if (self.problems_solved < PROBLEM_THRESHOLD):
+        if self.problems_solved < PROBLEM_THRESHOLD:
             return badge_title
-        
+
         easy_percentage = PERCENT_TOTAL(self.easy)
         medium_percentage = PERCENT_TOTAL(self.medium)
         hard_percentage = PERCENT_TOTAL(self.hard)
 
-        if (self.won >= PROBLEM_THRESHOLD):
+        if self.won >= PROBLEM_THRESHOLD:
             badge_title = "🥇 *Standing on the shoulder of giants. And your hard work.*"
-        elif (self.first >= PROBLEM_THRESHOLD):
-            badge_title = "💨 *Well, would you look at the time. Lack there of obviously.*"
-        elif (hard_percentage >= DIFFICULTY_PERCENTAGE_THRESHOLD):
+        elif self.first >= PROBLEM_THRESHOLD:
+            badge_title = (
+                "💨 *Well, would you look at the time. Lack there of obviously.*"
+            )
+        elif hard_percentage >= DIFFICULTY_PERCENTAGE_THRESHOLD:
             badge_title = "🏆 *The highest honor. Not using Stack Overflow.*"
-        elif (medium_percentage >= DIFFICULTY_PERCENTAGE_THRESHOLD):
+        elif medium_percentage >= DIFFICULTY_PERCENTAGE_THRESHOLD:
             badge_title = "🍪 *Here's a cookie for all your efforts.*"
-        elif (easy_percentage >= DIFFICULTY_PERCENTAGE_THRESHOLD):
+        elif easy_percentage >= DIFFICULTY_PERCENTAGE_THRESHOLD:
             badge_title = "🐒 *If rock and monke, then create fire.*"
-        elif (self.total_points >= POINT_THRESHOLD):
+        elif self.total_points >= POINT_THRESHOLD:
             badge_title = "🦾 *Point King*"
-        elif (self.problems_solved >= PROBLEM_THRESHOLD):
-            badge_title = "👨‍🌾 *Living the simple life. Eat. Solve a programming problem. Sleep.*"
-        
+        elif self.problems_solved >= PROBLEM_THRESHOLD:
+            badge_title = (
+                "👨‍🌾 *Living the simple life. Eat. Solve a programming problem. Sleep.*"
+            )
+
         return badge_title
