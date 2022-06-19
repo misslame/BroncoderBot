@@ -1,2 +1,5 @@
 python-dotenv>=0.20.0
 git+https://github.com/Rapptz/discord.py@master
+selenium>=4.2.0
+markdownify>=0.11.2
+tzdata>=2022.1

@@ -1,7 +1,7 @@
 import sys
 import traceback
 import discord
-from discord import Attachment, Color, Guild, Interaction, app_commands
+from discord import Attachment, Color, Embed, Guild, Interaction, app_commands
 from typing import Literal
 import zoneinfo
 from datetime import time
@@ -250,11 +250,16 @@ async def get_stats(interaction: discord.Interaction):
     await interaction.response.defer()
 
     ParticipantData.get_instance().add_participant(interaction.user.id)
+    participant_stats_embed = discord.Embed(
+        title=f"{interaction.user.display_name}'s Stats:", 
+        description=ParticipantData.get_instance().get_participant_printed_stats(interaction.user.id),
+        color=discord.Color.from_str("#FFB500")
+    )
+    participant_stats_embed.set_thumbnail(url=interaction.user.display_avatar.url)
+    participant_stats_embed.add_field(name="Badge", value=ParticipantData.get_instance().get_badge(interaction.user.id))
+    
     await interaction.followup.send(
-        f"{interaction.user.mention} stats:"
-        + ParticipantData.get_instance().get_participant_printed_stats(
-            interaction.user.id
-        )
+        embed=participant_stats_embed
     )
 
 
@@ -369,6 +374,20 @@ async def testsubmit(interaction: discord.Interaction):
         )
 
 
+def admin_permissions(interaction: discord.Interaction) -> bool:
+    return interaction.user.guild_permissions.administrator
+
+'''
+@app_commands.check(admin_permissions)
+@tree.command(description="Grant temp points")
+@app_commands.describe(setting="Target Category", point_value="Point Amount")
+async def givepoints(interaction: discord.Interaction, setting:str, point_value: int):
+    await interaction.response.send_message(
+        f"I have updated your point value for {interaction.user.id}"
+    )
+    ParticipantData.get_instance().add_points(interaction.user.id, setting, point_value)
+'''
+
 """******************************************************
     ERROR HANDLING
 ******************************************************"""
@@ -423,6 +442,18 @@ async def daily_announcement():
 @daily_announcement.before_loop
 async def before():
     await client.wait_until_ready()
+
+
+@app_commands.check(admin_permissions)
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+@tree.command(description="Assigns a new Announcement Channel")
+@app_commands.describe(new_announce_channel="Channel")
+async def change_announcement_channel(interaction: discord.Interaction, new_announce_channel: discord.TextChannel):
+    global ANNOUNCEMENT_CHANNEL_ID
+    await interaction.response.send_message(
+        f"Updated the announcement channel to {new_announce_channel.mention}"
+    )
+    ANNOUNCEMENT_CHANNEL_ID = new_announce_channel.id
 
 
 """******************************************************
