@@ -21,8 +21,7 @@ timeout = 60
 my_browser_state = BrowserState()
 options = webdriver.ChromeOptions()
 options.add_experimental_option("excludeSwitches", ["enable-logging"])
-driver = webdriver.Chrome(
-    desired_capabilities=desired_capabilities, options=options)
+driver = webdriver.Chrome(desired_capabilities=desired_capabilities, options=options)
 
 response_dict_base = {"msg": None, "err": False, "details": {}}
 
@@ -46,8 +45,7 @@ async def setup(question):
     driver.find_element(By.ID, "id_password").send_keys(LEETCODE_PASSWORD)
 
     try:
-        element_not_present = EC.invisibility_of_element(
-            (By.ID, "initial-loading"))
+        element_not_present = EC.invisibility_of_element((By.ID, "initial-loading"))
         WebDriverWait(driver, timeout).until(element_not_present)
     except TimeoutException:
         exit()
@@ -55,18 +53,15 @@ async def setup(question):
     driver.find_element(By.ID, "signin_btn").click()
 
     try:
-        element_present = EC.presence_of_element_located(
-            (By.ID, "profile-app"))
+        element_present = EC.presence_of_element_located((By.ID, "profile-app"))
         WebDriverWait(driver, timeout).until(element_present)
     except TimeoutException:
         exit()
 
-    driver.get(
-        "https://leetcode.com/problems/{}".format(question["titleSlug"]))
+    driver.get("https://leetcode.com/problems/{}".format(question["titleSlug"]))
 
     try:
-        element_present = EC.invisibility_of_element(
-            (By.ID, "initial-loading"))
+        element_present = EC.invisibility_of_element((By.ID, "initial-loading"))
         WebDriverWait(driver, timeout).until(element_present)
     except TimeoutException:
         exit()
@@ -76,8 +71,7 @@ async def setup(question):
             (By.XPATH, '//*[contains(text(), "Got it!")]')
         )
         WebDriverWait(driver, 5).until(element_present)
-        driver.find_element(
-            By.XPATH, '//*[contains(text(), "Got it!")]').click()
+        driver.find_element(By.XPATH, '//*[contains(text(), "Got it!")]').click()
     except TimeoutException:
         pass
 
@@ -88,6 +82,7 @@ async def setup(question):
         f'document.getElementsByClassName("btns__1OeZ")[0].innerHTML += `<textarea id="clipboard" {tab_fix} rows="4" cols="50">shit</textarea>`'
     )
     my_browser_state.state = READY
+
 
 async def changeProblem(title_slug):
     my_browser_state.state = SETTING_UP
@@ -125,19 +120,14 @@ async def typeCode(code):
     clipboard = driver.find_element(By.ID, "clipboard")
     clipboard.click()
     actions = ActionChains(driver)
-    actions.key_down(Keys.CONTROL).send_keys(
-        "a").key_up(Keys.CONTROL).perform()
+    actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).perform()
     actions.send_keys(code).perform()
-    actions.key_down(Keys.CONTROL).send_keys(
-        "a").key_up(Keys.CONTROL).perform()
-    actions.key_down(Keys.CONTROL).send_keys(
-        "c").key_up(Keys.CONTROL).perform()
+    actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).perform()
+    actions.key_down(Keys.CONTROL).send_keys("c").key_up(Keys.CONTROL).perform()
     code_editor = driver.find_element(By.CLASS_NAME, "CodeMirror-lines")
     code_editor.click()
-    actions.key_down(Keys.CONTROL).send_keys(
-        "a").key_up(Keys.CONTROL).perform()
-    actions.key_down(Keys.CONTROL).send_keys(
-        "v").key_up(Keys.CONTROL).perform()
+    actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).perform()
+    actions.key_down(Keys.CONTROL).send_keys("v").key_up(Keys.CONTROL).perform()
 
 
 async def submitAttachmentToLeetcode(attachment, language):
@@ -164,12 +154,12 @@ async def submitCode(code, language="Python3"):
     # driver.find_element(By.XPATH, "//*[@data-cy='lang-select']").click()
     # lang_button = driver.find_element(By.XPATH, f"//li[contains(text(), '{language}')]")
     driver.execute_script(
-        f"document.querySelector('[data-cy=\"lang-select-{language}\"]').click()")
+        f"document.querySelector('[data-cy=\"lang-select-{language}\"]').click()"
+    )
 
     await typeCode(code)
 
-    driver.find_element(
-        By.XPATH, '//button[@data-cy="submit-code-btn"]').click()
+    driver.find_element(By.XPATH, '//button[@data-cy="submit-code-btn"]').click()
     try:
         pending_present = EC.presence_of_element_located(
             (By.XPATH, "//*[contains(text(), 'Pending')]")
@@ -178,8 +168,7 @@ async def submitCode(code, language="Python3"):
         judging_present = EC.presence_of_element_located(
             (By.XPATH, "//*[contains(text(), 'Judging')]")
         )
-        WebDriverWait(driver, timeout).until(
-            pending_present or judging_present)
+        WebDriverWait(driver, timeout).until(pending_present or judging_present)
     except TimeoutException:
         exit()
 
@@ -188,16 +177,12 @@ async def submitCode(code, language="Python3"):
     # print("done waiting")
 
     try:
-        detail_present = EC.presence_of_element_located(
-            (By.CLASS_NAME, "detail__1Ye5")
-        )
+        detail_present = EC.presence_of_element_located((By.CLASS_NAME, "detail__1Ye5"))
         WebDriverWait(driver, timeout).until(detail_present)
     except TimeoutException:
         exit()
 
-    result_url = driver.find_element(
-        By.CLASS_NAME, "detail__1Ye5"
-    ).get_property("href")
+    result_url = driver.find_element(By.CLASS_NAME, "detail__1Ye5").get_property("href")
 
     # print(result_url)
     driver.execute_script("window.open()")
@@ -227,14 +212,18 @@ async def submitCode(code, language="Python3"):
             By.ID, "result_runtime"
         ).get_attribute("innerText")
 
-    if response_dict["details"]["result_state"] in ["Accepted", "Wrong Answer", "Runtime Error", "Time Limit Exceeded"]:
+    if response_dict["details"]["result_state"] in [
+        "Accepted",
+        "Wrong Answer",
+        "Runtime Error",
+        "Time Limit Exceeded",
+    ]:
         response_dict["details"]["result_progress"] = driver.find_element(
             By.ID, "result_progress"
         ).get_attribute("innerText")
         # print(response_dict["details"]["result_progress"])
 
-        result_progress_split = response_dict["details"]["result_progress"].split(
-            " / ")
+        result_progress_split = response_dict["details"]["result_progress"].split(" / ")
 
         if len(result_progress_split) == 2:
             num = int(result_progress_split[0])

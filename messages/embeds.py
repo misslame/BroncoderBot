@@ -30,7 +30,6 @@ def createSubmissionEmbed(
     status = details.get("result_state")
     if status:
         title = status
-        
 
     embed = discord.Embed(title=title, description=description)
 
@@ -55,7 +54,7 @@ def createSubmissionEmbed(
             embed.add_field(name="Test cases", value=result_progress, inline=False)
 
     if details.get("result_state") == "Compile Error":
-            embed.color = COLOR_RED
+        embed.color = COLOR_RED
 
     if "result_runtime" in details:
         embed.add_field(name="Runtime", value=details["result_runtime"])

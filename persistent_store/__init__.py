@@ -2,15 +2,17 @@ from copy import copy, deepcopy
 import json
 from os.path import isfile
 
+
 class PersistentStore:
     __instance = None
-    def __init__(self, filename='runtime-store.json'):
+
+    def __init__(self, filename="runtime-store.json"):
         if PersistentStore.__instance == None:
             PersistentStore.__instance = self
             if not isfile(filename):
-                self.__f = open(filename, 'w+')
+                self.__f = open(filename, "w+")
             else:
-                self.__f = open(filename, 'r+')
+                self.__f = open(filename, "r+")
 
             self.__f.seek(0, 0)
             buf = self.__f.read()
@@ -20,7 +22,7 @@ class PersistentStore:
                 self.__store = {}
                 self.sync()
         else:
-            raise RuntimeError('PersistentStore is singleton')
+            raise RuntimeError("PersistentStore is singleton")
 
     @staticmethod
     def get_instance():
@@ -80,7 +82,7 @@ class PersistentStore:
         for k, v in list(dic.items()):
             if type(k) is int:
                 if str(k) in dic:
-                    raise Exception(f'Duplicate keys in dict: {str(k)}')
+                    raise Exception(f"Duplicate keys in dict: {str(k)}")
 
                 dic[str(k)] = v
                 del dic[k]
