@@ -3,14 +3,16 @@ import traceback
 import discord
 from discord import Attachment, Color, Guild, Interaction, Role, app_commands
 from typing import Literal
-import zoneinfo
-from datetime import time
+import datetime
+from datetime import date, time
 
 from discord.ext import tasks
 
 # IMPORTED CONSTANTS:
 from config.config import BOT_TOKEN
 from command_handling.timeout_handler import COOLDOWN_SECONDS
+from command_handling.announcement_handler import DAILY_ANNOUNCEMENT_TIME
+from command_handling.announcement_handler import END_COMPETITION_ANNOUNCEMENT_TIME
 
 # MODULES:
     # -------- Command Handling -----------
@@ -18,6 +20,7 @@ from command_handling.submission_handler import handle_submission
 from command_handling.rank_list_handler import format_rank_list
 from command_handling.first_handler import get_first_stats
 from command_handling.timeout_handler import readable
+from command_handling.announcement_handler import get_announcement_message, get_end_announcement_message
 from command_handling import admin as admin_commands
 
     # -------- Problem Submission ---------
@@ -30,6 +33,8 @@ from submission_handling.selenium import setup, submitAttachmentToLeetcode
 from participant_data_handling.participant_data import ParticipantData
 from persistent_store import PersistentStore
 
+ANNOUNCEMENT_CHANNEL_ID = 846269630838603796 #TEMPORARY
+SUBMISSION_CHANNEL_ID = 846269630838603796 #TEMPORARY
 
 '''****************************************************
     Bot Connect & Set Up
@@ -233,19 +238,24 @@ async def stopreminders(interaction: discord.Interaction):
     Temporary & Testing Commands
 ************************************************'''
 @tree.command(description="Test announcement command.")
-async def test_start_announcement(interaction: discord.Interaction):
-    role = discord.utils.get(interaction.guild.roles, name="Broncoder")
-    await interaction.response.send_message(f'{role.mention}s, today is the day! The start of the competition.\n\n__Reminders:__\n • Please partricipate in good faith.\n • Challenges are posted at TIME_SELECTED.\n • Submit solution files either through DM to me or in @MENTION_BOT_CHANNEL through the /submit command. \n\n **Happy trotting, Broncoders!**')
+async def test_announcement(interaction: discord.Interaction):
+    role = discord.utils.get(client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder")
+    embeds = getProblemEmbeds(store["cotd"])
 
-@tree.command(description="Test announcement command.")
-async def test_lastday_announcement(interaction: discord.Interaction):
-    role = role = discord.utils.get(interaction.guild.roles, name="Broncoder")
-    await interaction.response.send_message(f'{role.mention}s, Trotting ends today. You have TIME_LEFT hours left to complete the last challange. First place will be announced TIME_ANNOUNCED.')
+    message = f'{role.mention}s, ' + get_announcement_message(SUBMISSION_CHANNEL_ID)
+    await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(message)
+    await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(
+        content="Today's challenge:",
+        embed=embeds.get("info"),
+        view=ProblemView(embeds),
+    )
 
 @tree.command(description="Test announcement command.")
 async def test_end_announcement(interaction: discord.Interaction):
-    role = role = discord.utils.get(interaction.guild.roles, name="Broncoder")
-    await interaction.response.send_message(f'Welp...TIMES UP, {role.mention}s!\n\nCompetition is up! :tada: **Congrats to FIRST_PLACE!** :tada: \n\n Look forward to future monthly competitions!')
+    role = discord.utils.get(client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder")
+
+    message = f'{role.mention}s, ' + get_end_announcement_message(client, client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild)
+    await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(message)
 
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="Test Submit Command.")
@@ -338,16 +348,25 @@ async def stopreminders_error(interaction: discord.Interaction, error: app_comma
     ANNOUNCEMENT HANDLING
 ******************************************************'''
 
-ANNOUNCEMENT_CHANNEL_ID = 833465079559094312
-tz =  zoneinfo.ZoneInfo('PST8PDT')
-# 7:30 am
-ANNOUNCEMENT_TIME = time(hour=7, minute=30, tzinfo=tz)
-
-@tasks.loop(time=ANNOUNCEMENT_TIME)
+@tasks.loop(time=DAILY_ANNOUNCEMENT_TIME)
 async def daily_announcement():
-    message_channel = client.get_channel(ANNOUNCEMENT_CHANNEL_ID)
-    await message_channel.send('This announcement happens at 7:30am PST.')
+    role = discord.utils.get(client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder")
+    embeds = getProblemEmbeds(store["cotd"])
 
+    message = f'{role.mention}s, ' + get_announcement_message(SUBMISSION_CHANNEL_ID)
+    await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(message)
+    await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(
+        content="Today's challenge:",
+        embed=embeds.get("info"),
+        view=ProblemView(embeds),
+    )
+
+@tasks.loop(time=END_COMPETITION_ANNOUNCEMENT_TIME)
+async def end_competition_announcement():
+    role = discord.utils.get(client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder")
+
+    message = f'{role.mention}s, ' + get_end_announcement_message(client, client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild)
+    await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(message)
 
 @daily_announcement.before_loop
 async def before():
