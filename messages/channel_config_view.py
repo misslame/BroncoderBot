@@ -1,6 +1,8 @@
 import discord
+
 ANNOUNCEMENT_CHANNEL_ID = 846269630838603796  # TEMPORARY
 SUBMISSION_CHANNEL_ID = 846269630838603796  # TEMPORARY
+
 
 class InfoButton(discord.ui.Button["ChannelConfigView"]):
     def __init__(self):
@@ -10,24 +12,25 @@ class InfoButton(discord.ui.Button["ChannelConfigView"]):
 
     async def callback(self, interaction: discord.Interaction):
         view: ChannelConfigView = self.view
-        await interaction.response.edit_message(
-            content="Info", view=view
-        )
+        await interaction.response.edit_message(content="Info", view=view)
 
 
 class AnnounceButton(discord.ui.Button["ChannelConfigView"]):
     def __init__(self, channel_id):
         self.channel_id = channel_id
-        super().__init__(style=discord.ButtonStyle.blurple, label="Announcement Channel")
-        
+        super().__init__(
+            style=discord.ButtonStyle.blurple, label="Announcement Channel"
+        )
+
     async def callback(self, interaction: discord.Interaction):
         global ANNOUNCEMENT_CHANNEL_ID
-        
+
         view: ChannelConfigView = self.view
         self.view.end_interaction()
         ANNOUNCEMENT_CHANNEL_ID = self.channel_id
         await interaction.response.edit_message(
-            content=f"Your announcement channel has been set to <#{self.channel_id}>", view=view
+            content=f"Your announcement channel has been set to <#{self.channel_id}>",
+            view=view,
         )
 
 
@@ -38,12 +41,13 @@ class SubmissionButton(discord.ui.Button["ChannelConfigView"]):
 
     async def callback(self, interaction: discord.Interaction):
         global SUBMISSION_CHANNEL_ID
-        
+
         view: ChannelConfigView = self.view
         self.view.end_interaction()
         SUBMISSION_CHANNEL_ID = self.channel_id
         await interaction.response.edit_message(
-            content=f"Your code submission channel has been set to <#{self.channel_id}>", view=view
+            content=f"Your code submission channel has been set to <#{self.channel_id}>",
+            view=view,
         )
 
 
@@ -53,7 +57,7 @@ class ChannelConfigView(discord.ui.View):
         super().__init__()
 
         self.buttons = {}
-        
+
         self.buttons["info"] = InfoButton()
         self.add_item(self.buttons["info"])
 
@@ -62,7 +66,6 @@ class ChannelConfigView(discord.ui.View):
 
         self.buttons["submit"] = SubmissionButton(channel_id)
         self.add_item(self.buttons["submit"])
-
 
     def end_interaction(self):
         for btn in self.buttons.values():

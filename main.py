@@ -36,7 +36,11 @@ from submission_handling.selenium import setup, submitAttachmentToLeetcode
 from participant_data_handling.participant_data import ParticipantData
 from persistent_store import PersistentStore
 
-from messages.channel_config_view import ANNOUNCEMENT_CHANNEL_ID, SUBMISSION_CHANNEL_ID, ChannelConfigView
+from messages.channel_config_view import (
+    ANNOUNCEMENT_CHANNEL_ID,
+    SUBMISSION_CHANNEL_ID,
+    ChannelConfigView,
+)
 
 """****************************************************
     Bot Connect & Set Up
@@ -499,6 +503,7 @@ async def before():
 def admin_permissions(interaction: discord.Interaction) -> bool:
     return interaction.user.guild_permissions.administrator
 
+
 @app_commands.check(admin_permissions)
 @app_commands.checks.cooldown(1, 1)
 @tree.command(description="Configures Bot Channels")
@@ -509,7 +514,7 @@ async def configure_bot_channels(
 
     await interaction.response.send_message(
         content=f"What would you like {channel.mention} to serve as? Choose from the buttons below.",
-        view=ChannelConfigView(channel.id)
+        view=ChannelConfigView(channel.id),
     )
 
 
