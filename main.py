@@ -1,16 +1,18 @@
 import sys
 import traceback
 import discord
-from discord import Attachment, Color, Guild, Interaction, app_commands
+from discord import Attachment, Color, Embed, Guild, Interaction, app_commands
 from typing import Literal
-import zoneinfo
-from datetime import time
+import datetime
+from datetime import date, time
 
 from discord.ext import tasks
 
 # IMPORTED CONSTANTS:
 from config.config import BOT_TOKEN
 from command_handling.timeout_handler import COOLDOWN_SECONDS
+from command_handling.announcement_handler import DAILY_ANNOUNCEMENT_TIME
+from command_handling.announcement_handler import END_COMPETITION_ANNOUNCEMENT_TIME
 
 # MODULES:
 # -------- Command Handling -----------
@@ -18,6 +20,10 @@ from command_handling.submission_handler import handle_submission
 from command_handling.rank_list_handler import format_rank_list
 from command_handling.first_handler import get_first_stats
 from command_handling.timeout_handler import readable
+from command_handling.announcement_handler import (
+    get_announcement_message,
+    get_end_announcement_message,
+)
 from command_handling import admin as admin_commands
 
 # -------- Problem Submission ---------
@@ -30,6 +36,11 @@ from submission_handling.selenium import setup, submitAttachmentToLeetcode
 from participant_data_handling.participant_data import ParticipantData
 from persistent_store import PersistentStore
 
+from messages.channel_config_view import (
+    ANNOUNCEMENT_CHANNEL_ID,
+    SUBMISSION_CHANNEL_ID,
+    ChannelConfigView,
+)
 
 """****************************************************
     Bot Connect & Set Up
@@ -250,12 +261,20 @@ async def get_stats(interaction: discord.Interaction):
     await interaction.response.defer()
 
     ParticipantData.get_instance().add_participant(interaction.user.id)
-    await interaction.followup.send(
-        f"{interaction.user.mention} stats:"
-        + ParticipantData.get_instance().get_participant_printed_stats(
+    participant_stats_embed = discord.Embed(
+        title=f"{interaction.user.display_name}'s Stats:",
+        description=ParticipantData.get_instance().get_participant_printed_stats(
             interaction.user.id
-        )
+        ),
+        color=discord.Color.from_str("#FFB500"),
     )
+    participant_stats_embed.set_thumbnail(url=interaction.user.display_avatar.url)
+    participant_stats_embed.add_field(
+        name="Badge",
+        value=ParticipantData.get_instance().get_badge(interaction.user.id),
+    )
+
+    await interaction.followup.send(embed=participant_stats_embed)
 
 
 """ ---------- UTILITY ---------- """
@@ -292,6 +311,34 @@ async def stopreminders(interaction: discord.Interaction):
 """************************************************
     Temporary & Testing Commands
 ************************************************"""
+
+
+@tree.command(description="Test announcement command.")
+async def test_announcement(interaction: discord.Interaction):
+    role = discord.utils.get(
+        client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder"
+    )
+    embeds = getProblemEmbeds(store["cotd"])
+
+    message = f"{role.mention}s, " + get_announcement_message(SUBMISSION_CHANNEL_ID)
+    await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(message)
+    await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(
+        content="Today's challenge:",
+        embed=embeds.get("info"),
+        view=ProblemView(embeds),
+    )
+
+
+@tree.command(description="Test announcement command.")
+async def test_end_announcement(interaction: discord.Interaction):
+    role = discord.utils.get(
+        client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder"
+    )
+
+    message = f"{role.mention}s, " + get_end_announcement_message(
+        client, client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild
+    )
+    await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(message)
 
 
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
@@ -369,6 +416,17 @@ async def testsubmit(interaction: discord.Interaction):
         )
 
 
+"""
+@app_commands.check(admin_permissions)
+@tree.command(description="Grant temp points")
+@app_commands.describe(setting="Target Category", point_value="Point Amount")
+async def givepoints(interaction: discord.Interaction, setting:str, point_value: int):
+    await interaction.response.send_message(
+        f"I have updated your point value for {interaction.user.id}"
+    )
+    ParticipantData.get_instance().add_points(interaction.user.id, setting, point_value)
+"""
+
 """******************************************************
     ERROR HANDLING
 ******************************************************"""
@@ -408,21 +466,56 @@ async def stopreminders_error(
     ANNOUNCEMENT HANDLING
 ******************************************************"""
 
-ANNOUNCEMENT_CHANNEL_ID = 833465079559094312
-tz = zoneinfo.ZoneInfo("PST8PDT")
-# 7:30 am
-ANNOUNCEMENT_TIME = time(hour=7, minute=30, tzinfo=tz)
 
-
-@tasks.loop(time=ANNOUNCEMENT_TIME)
+@tasks.loop(time=DAILY_ANNOUNCEMENT_TIME)
 async def daily_announcement():
-    message_channel = client.get_channel(ANNOUNCEMENT_CHANNEL_ID)
-    await message_channel.send("This announcement happens at 7:30am PST.")
+    role = discord.utils.get(
+        client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder"
+    )
+    embeds = getProblemEmbeds(store["cotd"])
+
+    message = f"{role.mention}s, " + get_announcement_message(SUBMISSION_CHANNEL_ID)
+    await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(message)
+    await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(
+        content="Today's challenge:",
+        embed=embeds.get("info"),
+        view=ProblemView(embeds),
+    )
+
+
+@tasks.loop(time=END_COMPETITION_ANNOUNCEMENT_TIME)
+async def end_competition_announcement():
+    role = discord.utils.get(
+        client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder"
+    )
+
+    message = f"{role.mention}s, " + get_end_announcement_message(
+        client, client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild
+    )
+    await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(message)
 
 
 @daily_announcement.before_loop
 async def before():
     await client.wait_until_ready()
+
+
+def admin_permissions(interaction: discord.Interaction) -> bool:
+    return interaction.user.guild_permissions.administrator
+
+
+@app_commands.check(admin_permissions)
+@app_commands.checks.cooldown(1, 1)
+@tree.command(description="Configures Bot Channels")
+@app_commands.describe(channel="Channel")
+async def configure_bot_channels(
+    interaction: discord.Interaction, channel: discord.TextChannel
+):
+
+    await interaction.response.send_message(
+        content=f"What would you like {channel.mention} to serve as? Choose from the buttons below.",
+        view=ChannelConfigView(channel.id),
+    )
 
 
 """******************************************************
