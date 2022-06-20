@@ -36,8 +36,7 @@ from submission_handling.selenium import setup, submitAttachmentToLeetcode
 from participant_data_handling.participant_data import ParticipantData
 from persistent_store import PersistentStore
 
-ANNOUNCEMENT_CHANNEL_ID = 846269630838603796  # TEMPORARY
-SUBMISSION_CHANNEL_ID = 846269630838603796  # TEMPORARY
+from messages.channel_config_view import ANNOUNCEMENT_CHANNEL_ID, SUBMISSION_CHANNEL_ID, ChannelConfigView
 
 """****************************************************
     Bot Connect & Set Up
@@ -413,10 +412,6 @@ async def testsubmit(interaction: discord.Interaction):
         )
 
 
-def admin_permissions(interaction: discord.Interaction) -> bool:
-    return interaction.user.guild_permissions.administrator
-
-
 """
 @app_commands.check(admin_permissions)
 @tree.command(description="Grant temp points")
@@ -501,18 +496,21 @@ async def before():
     await client.wait_until_ready()
 
 
+def admin_permissions(interaction: discord.Interaction) -> bool:
+    return interaction.user.guild_permissions.administrator
+
 @app_commands.check(admin_permissions)
-@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
-@tree.command(description="Assigns a new Announcement Channel")
-@app_commands.describe(new_announce_channel="Channel")
-async def change_announcement_channel(
-    interaction: discord.Interaction, new_announce_channel: discord.TextChannel
+@app_commands.checks.cooldown(1, 1)
+@tree.command(description="Configures Bot Channels")
+@app_commands.describe(channel="Channel")
+async def configure_bot_channels(
+    interaction: discord.Interaction, channel: discord.TextChannel
 ):
-    global ANNOUNCEMENT_CHANNEL_ID
+
     await interaction.response.send_message(
-        f"Updated the announcement channel to {new_announce_channel.mention}"
+        content=f"What would you like {channel.mention} to serve as? Choose from the buttons below.",
+        view=ChannelConfigView(channel.id)
     )
-    ANNOUNCEMENT_CHANNEL_ID = new_announce_channel.id
 
 
 """******************************************************
