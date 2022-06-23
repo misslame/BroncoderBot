@@ -57,6 +57,7 @@ client = discord.Client(intents=intenderinos, activity=activity)
 tree = app_commands.CommandTree(client)
 store = PersistentStore.get_instance()
 
+
 @client.event
 async def on_connect():  # Before on_ready
     if "first_submission" not in store:
@@ -181,13 +182,13 @@ async def submit(
         points = DIFFICULTIES[difficulty_str]
         BONUS_POINTS = 1
         was_first_submission = False
-        
+
         if store.__getitem__("first_submission") == False:
             was_first_submission = True
             store.update({"first_submission": True})
             points += BONUS_POINTS
             response_message += "\n**Congrats, you're the first person to submit! Here's an additional bonus point!**"
-        
+
         completion_percent = submission.get("details").get("result_progress_percent")
 
         status = submission.get("details").get("result_state")
@@ -386,7 +387,7 @@ async def testsubmit(interaction: discord.Interaction):
         DIFFICULTY_POINT = difficulties[difficulty_str]
         BONUS_POINTS = 1
         was_first_submission = False
-        
+
         if store.__getitem__("first_submission") == False:
             was_first_submission = True
             store.update({"first_submission": True})
@@ -417,7 +418,7 @@ async def testsubmit(interaction: discord.Interaction):
                 was_first_submission,
             )
             p = ParticipantData.get_instance().get_points(interaction.user.id)
-            
+
             await interaction.edit_original_message(
                 content=response_message + "\n\n"
                 f"{interaction.user.mention} has submitted their solution and received {DIFFICULTY_POINT} point{'s'[:DIFFICULTY_POINT ^ 1]}!\n"
