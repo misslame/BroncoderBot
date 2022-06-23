@@ -465,6 +465,11 @@ async def tree_errors(
             f"You are on cooldown. Try again in {readable(int(error.cooldown.get_retry_after()))}",
             ephemeral=True,
         )
+    elif isinstance(error, app_commands.CheckFailure):
+        await interaction.response.send_message(
+            "You do not have the permission to execute this command!",
+            ephemeral=True,
+        )
     else:
         print(
             "Ignoring exception in command {}:".format(interaction.command),
