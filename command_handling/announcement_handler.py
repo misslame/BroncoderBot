@@ -5,7 +5,9 @@ from datetime import date, time
 from discord import channel
 
 from participant_data_handling.participant_data import ParticipantData
+from persistent_store import PersistentStore
 
+store = PersistentStore.get_instance()
 tz = zoneinfo.ZoneInfo("PST8PDT")
 
 DAILY_HOUR = 6
@@ -72,6 +74,9 @@ def get_end_announcement_message(client: discord.Client, guild: discord.Guild):
             )
         else:
             message += "Too bad no one participated. Guess everyone turned in to glue."
+    
+    store.__setitem__("first_submission", False)
+    
     return message
 
 

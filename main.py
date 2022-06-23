@@ -57,9 +57,10 @@ client = discord.Client(intents=intenderinos, activity=activity)
 tree = app_commands.CommandTree(client)
 store = PersistentStore.get_instance()
 
-
 @client.event
 async def on_connect():  # Before on_ready
+    if "first_submission" not in store:
+        store.__setitem__("first_submission", False)
     if "cotd" not in store:
         print("No existing COTD found, making a new one...")
         store["cotd"] = {}
@@ -121,7 +122,7 @@ async def on_ready():
 
 
 @tree.command(description="Say hello.")
-@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+@app_commands.checks.cooldown(1, 1)
 async def hello(interaction: discord.Interaction):
     await interaction.response.send_message(f"Hi, {interaction.user.mention}")
 
@@ -143,7 +144,7 @@ async def current_challenge(interaction: discord.Interaction):
 
 @tree.command(description="Submit your code to be tested and judged.")
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
-@app_commands.describe(attachment="The code to submit", language="Progamming language")
+@app_commands.describe(attachment="The code to submit", language="Programming language")
 async def submit(
     interaction: discord.Interaction,
     attachment: discord.Attachment,
@@ -171,18 +172,22 @@ async def submit(
     await interaction.response.defer()
     submission = await handle_submission(interaction, attachment, language)
 
-    response_message = f"Thanks for uploading, {interaction.user.display_name}! Recieved {language} file: {attachment.filename}."
+    response_message = f"Thanks for uploading, {interaction.user.display_name}! Received {language} file: {attachment.filename}."
 
     DIFFICULTIES = {"Easy": 1, "Medium": 2, "Hard": 3}
 
     if not submission.get("err"):
         difficulty_str = store["cotd"]["difficulty"]
-
-        # TODO: figure out who is first
-        was_first = False
-        # TODO: add up points from first accepted submission bonus!
         points = DIFFICULTIES[difficulty_str]
-
+        BONUS_POINTS = 1
+        was_first_submission = False
+        
+        if store.__getitem__("first_submission") == False:
+            was_first_submission = True
+            store.update({"first_submission": True})
+            points += BONUS_POINTS
+            response_message += "\n**Congrats, you're the first person to submit! Here's an additional bonus point!**"
+        
         completion_percent = submission.get("details").get("result_progress_percent")
 
         status = submission.get("details").get("result_state")
@@ -193,14 +198,14 @@ async def submit(
 
         if status == "Accepted":
             ParticipantData.get_instance().update_stats(
-                interaction.user.id, difficulty_str, points, was_first
+                interaction.user.id, difficulty_str, points, was_first_submission
             )
             p = ParticipantData.get_instance().get_points(interaction.user.id)
 
             # TODO: add timestamp
             await interaction.edit_original_message(
                 content=response_message + "\n\n"
-                f"{interaction.user.mention} has submited their solution and recieved {points} point{'s'[:points ^ 1]}!\n"
+                f"{interaction.user.mention} has submitted their solution and received {points} point{'s'[:points ^ 1]}!\n"
                 f"{interaction.user.mention} now has {p} point{'s'[:p ^ 1]}!",
                 embed=embed,
             )
@@ -341,9 +346,10 @@ async def test_end_announcement(interaction: discord.Interaction):
     await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(message)
 
 
-@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+@app_commands.checks.cooldown(1, 1)
 @tree.command(description="Test Submit Command.")
 async def testsubmit(interaction: discord.Interaction):
+
     await interaction.response.defer()
     data = {
         "filename": "test_submit_python.txt",
@@ -358,18 +364,34 @@ async def testsubmit(interaction: discord.Interaction):
         discord.Attachment(data=data, state=interaction.client._get_state()),
         "Python",
     )
+    """ - used to test for first submission
+    submission = {
+        "msg": "Submission to leetcode.com completed", 
+        "err": False, 
+        "details": {
+            "result_state": "Accepted"
+        }
+    }
+    """
 
     submission = await handle_submission(interaction, attachment, language)
     # print(submission)
 
-    response_message = f"Thanks for uploading, {interaction.user.display_name}! Recieved {language} file: {attachment.filename}."
+    response_message = f"Thanks for uploading, {interaction.user.display_name}! Received {language} file: {attachment.filename}."
 
     if not submission.get("err"):
 
         difficulty_str = store["cotd"]["difficulty"]
         difficulties = {"Easy": 1, "Medium": 2, "Hard": 3}
         DIFFICULTY_POINT = difficulties[difficulty_str]
-        WAS_FIRST_SUBMITION = False
+        BONUS_POINTS = 1
+        was_first_submission = False
+        
+        if store.__getitem__("first_submission") == False:
+            was_first_submission = True
+            store.update({"first_submission": True})
+            DIFFICULTY_POINT += BONUS_POINTS
+            response_message += "\n**Congrats, you're the first person to submit! Here's an additional bonus point!**"
 
         # TODO: add timestamp
 
@@ -392,12 +414,13 @@ async def testsubmit(interaction: discord.Interaction):
                 interaction.user.id,
                 difficulty_str,
                 DIFFICULTY_POINT,
-                WAS_FIRST_SUBMITION,
+                was_first_submission,
             )
             p = ParticipantData.get_instance().get_points(interaction.user.id)
+            
             await interaction.edit_original_message(
                 content=response_message + "\n\n"
-                f"{interaction.user.mention} has submited their solution and recieved {DIFFICULTY_POINT} point{'s'[:DIFFICULTY_POINT ^ 1]}!\n"
+                f"{interaction.user.mention} has submitted their solution and received {DIFFICULTY_POINT} point{'s'[:DIFFICULTY_POINT ^ 1]}!\n"
                 f"{interaction.user.mention} now has {p} point{'s'[:p ^ 1]}!",
                 embed=embed,
             )
