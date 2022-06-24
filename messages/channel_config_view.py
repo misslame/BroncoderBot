@@ -3,6 +3,7 @@ from persistent_store import PersistentStore
 
 store = PersistentStore.get_instance()
 
+
 class InfoButton(discord.ui.Button["ChannelConfigView"]):
     def __init__(self):
         super().__init__(
@@ -24,7 +25,7 @@ class AnnounceButton(discord.ui.Button["ChannelConfigView"]):
     async def callback(self, interaction: discord.Interaction):
         view: ChannelConfigView = self.view
         self.view.end_interaction()
-        store.update({"announcement_channel_id": self.channel_id}) 
+        store.update({"announcement_channel_id": self.channel_id})
         await interaction.response.edit_message(
             content=f"Your announcement channel has been set to <#{self.channel_id}>",
             view=view,
@@ -39,7 +40,7 @@ class SubmissionButton(discord.ui.Button["ChannelConfigView"]):
     async def callback(self, interaction: discord.Interaction):
         view: ChannelConfigView = self.view
         self.view.end_interaction()
-        store.update({"submission_channel_id": self.channel_id}) 
+        store.update({"submission_channel_id": self.channel_id})
         await interaction.response.edit_message(
             content=f"Your code submission channel has been set to <#{self.channel_id}>",
             view=view,

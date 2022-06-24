@@ -90,6 +90,7 @@ async def on_ready():
     print("-------------------------------------")
     daily_announcement.start()
 
+
 @client.event
 async def on_guild_join(guild: Guild):
     default_announcement_msg = discord.Embed(
@@ -98,7 +99,7 @@ async def on_guild_join(guild: Guild):
         color=discord.Color.from_str("#FFB500"),
     )
     default_announcement_msg.set_thumbnail(url=client.user.avatar.url)
-    
+
     store.update({"announcement_channel_id": guild.text_channels[0].id})
     await guild.text_channels[0].send(embed=default_announcement_msg)
 
@@ -132,7 +133,9 @@ async def on_guild_join(guild: Guild):
 
 
 def check_submission_channel():
-    assert store.__getitem__("submission_channel_id") != 0, "Code submission channel not set"
+    assert (
+        store.__getitem__("submission_channel_id") != 0
+    ), "Code submission channel not set"
 
 
 """ ---------- FUN ---------- """
@@ -367,7 +370,7 @@ async def test_announcement(interaction: discord.Interaction):
 @tree.command(description="Test announcement command.")
 async def test_end_announcement(interaction: discord.Interaction):
     ANNOUNCEMENT_CHANNEL_ID = store.__getitem__("announcement_channel_id")
-    
+
     role = discord.utils.get(
         client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder"
     )
@@ -503,7 +506,7 @@ async def tree_errors(
         )
     elif isinstance(error, app_commands.CommandInvokeError):
         await interaction.response.send_message(
-            "No code submission channel set. Please notify an admin to fix this.", 
+            "No code submission channel set. Please notify an admin to fix this.",
             ephemeral=True,
         )
     else:
@@ -554,7 +557,7 @@ async def daily_announcement():
 @tasks.loop(time=END_COMPETITION_ANNOUNCEMENT_TIME)
 async def end_competition_announcement():
     ANNOUNCEMENT_CHANNEL_ID = store.__getitem__("announcement_channel_id")
-    
+
     role = discord.utils.get(
         client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder"
     )
