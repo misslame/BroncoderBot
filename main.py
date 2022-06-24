@@ -27,7 +27,7 @@ from command_handling.announcement_handler import (
 from command_handling import admin as admin_commands
 
 
-    # -------- Problem Submission ---------
+# -------- Problem Submission ---------
 from messages.problem_view import ProblemView
 from messages.embeds import createSubmissionEmbed, createProblemEmbed, getProblemEmbeds
 from problem_fetching.problem_fetch import getRandomQuestion, getQuestionByTitleSlug
@@ -120,17 +120,54 @@ async def on_ready():
 
 """ ---------- FUN ---------- """
 
-greeting = ["greeting", "aloha", "good afternoon", "good day", "good evening", "good morning", "good night", "greetings",
-    "guten Tag", "hello", "hey", "hola", "how's it going?", "how's it hanging?", "konnichi wa", "saulutions", "sup",
-    "what's happening?", "what's new?", "what's up?", "whazzup!!!", "yo holla how do?", "how goes it?", "how ya doing?",
-     "sup", "sup, b?", "what's cooking?", "what's crack-a-lackin", "what's cracking?", "What's in the bag?", "what's popping",
-     "what's shaking?", "what's the dizzle?", "what's the haps?", "what's the rumpus?", "what's up?", "yello" ]
+greeting = [
+    "greeting",
+    "aloha",
+    "good afternoon",
+    "good day",
+    "good evening",
+    "good morning",
+    "good night",
+    "greetings",
+    "guten Tag",
+    "hello",
+    "hey",
+    "hola",
+    "how's it going?",
+    "how's it hanging?",
+    "konnichi wa",
+    "saulutions",
+    "sup",
+    "what's happening?",
+    "what's new?",
+    "what's up?",
+    "whazzup!!!",
+    "yo holla how do?",
+    "how goes it?",
+    "how ya doing?",
+    "sup",
+    "sup, b?",
+    "what's cooking?",
+    "what's crack-a-lackin",
+    "what's cracking?",
+    "What's in the bag?",
+    "what's popping",
+    "what's shaking?",
+    "what's the dizzle?",
+    "what's the haps?",
+    "what's the rumpus?",
+    "what's up?",
+    "yello",
+]
+
 
 @tree.command(description="Say hello.")
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 async def hello(interaction: discord.Interaction):
-    entry = random.randrange(0,len(greeting) - 1)
-    await interaction.response.send_message(f'{greeting[entry]} {interaction.user.mention}')
+    entry = random.randrange(0, len(greeting) - 1)
+    await interaction.response.send_message(
+        f"{greeting[entry]} {interaction.user.mention}"
+    )
 
 
 """ ---------- PROBLEM SUBMISSION ---------- """
