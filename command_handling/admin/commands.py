@@ -74,14 +74,16 @@ async def randomize_cotd(interaction: discord.Interaction):
     await interaction.followup.send(f'Set challenge of the day to {problem["title"]}')
     return
 
-# I have put this in an unfortunate spot but... oh well. 
+
+# I have put this in an unfortunate spot but... oh well.
 async def randomize_cotd():
     problem = await getRandomQuestion()
     while "errors" in problem:
-        print('There was a problem setting up the challenge of the day... retrying')
+        print("There was a problem setting up the challenge of the day... retrying")
         problem = await getRandomQuestion()
     await changeProblem(problem["titleSlug"])
     store.update({"cotd": problem})
+
 
 __all__ = [
     "set_admin_role",
