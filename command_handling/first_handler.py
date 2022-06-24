@@ -7,10 +7,16 @@ from command_handling.announcement_handler import END_COMPETITION_ANNOUNCEMENT_T
 
 
 def get_first_stats(interaction: discord.Interaction):
-    days_left = monthrange(date.today().year, date.today().month)[1] - date.today().day 
+    days_left = monthrange(date.today().year, date.today().month)[1] - date.today().day
 
     # Check if there are participants:
-    if((ParticipantData.get_instance().participants_stats or ParticipantData.get_instance().get_points(ParticipantData.get_instane().get_top(1)[0]) > 0)):
+    if (
+        ParticipantData.get_instance().participants_stats
+        or ParticipantData.get_instance().get_points(
+            ParticipantData.get_instane().get_top(1)[0]
+        )
+        > 0
+    ):
         first_id = ParticipantData.get_instance().get_top(1)[0]
         first_place = interaction.guild.get_member(int(first_id)).display_name
         response_message = f"{first_place} is first!"
@@ -42,5 +48,5 @@ def get_first_stats(interaction: discord.Interaction):
         else:
             response_message += f"If it wasn't announced yet today, results will be! You have until {END_COMPETITION_ANNOUNCEMENT_TIME.strftime} to finish the day a winner!"
     else:
-        response_message = "There isn\'t anyone in first place!"
+        response_message = "There isn't anyone in first place!"
     return response_message

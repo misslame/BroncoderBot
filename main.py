@@ -263,6 +263,7 @@ async def submit(
 
 """ ---------- STATS ---------- """
 
+
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="Provides the Top given value members.")
 @app_commands.describe(value="What number of the top members you want to see")
