@@ -113,6 +113,8 @@ async def on_ready():
 
         ---------------------------
         UTILITY
+        * rules: Provides the rules and instructions to use the bot for the competition.
+        * supported_commands: Provides a list of supported non admin commands.
         * remindme: Enroll yourself in competition reminders.
         * stopreminders: Remove yourself from the competition reminders.
 
@@ -322,6 +324,15 @@ async def get_stats(interaction: discord.Interaction):
 
 """ ---------- UTILITY ---------- """
 
+@tree.command(description="Provides the rules and instructions to use the bot for the competition.")
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+async def rules(interaction: discord.Interaction):
+    await interaction.response.send_message(f'**Rules**\n---------\n • Please partricipate in good faith. Don\'t cheat! This competition is to help you improve on your leetcode skills and facilitate fun in our server. If you cheat you are defeating the purpose.\n\n • Challenges are posted at {DAILY_ANNOUNCEMENT_TIME.strftime("%I : %M %p")} in the announcement channel.\n\n • Submit solution files either through DM to me or in the submission channel through the /submit command.\n\n • Opt in to reminder pings through the /remindme command and opt out through the /stopreminders command.\n\n\n ***Happy Trotting Broncoder!***')
+
+@tree.command(description="Provides a list of supported non admin commands.")
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
+async def supported_commands(interaction: discord.Interaction):
+    await interaction.response.send_message(f'**************************************************\n    COMMANDS\n    currently supported commands:\n        ---------------------------\n        FUN\n        * hello : Say hello.\n\n        ---------------------------\n        PROBLEM SUBMISSION\n        * current_challenge : See today\'s problem.\n        * submit : Submit your code to be tested and judged.\n\n        ---------------------------\n        STATS\n        * top: Provides the Top given value members.\n        * top10: Provides the Top 10 members\n        * mypoints: Provides how many points you have.\n        * first: Compares you with the first place member.\n        * get_stats: Display your personal stats.\n\n        ---------------------------\n        UTILITY\n        * rules: Provides the rules and instructions to use the bot for the competition.\n        * supported_commands: Provides a list of supported non admin commands.\n       * remindme: Enroll yourself in competition reminders.\n        * stopreminders: Remove yourself from the competition reminders.\n\n****************************************************')
 
 @tree.command(description="Enroll yourself in competition reminders.")
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
@@ -336,7 +347,6 @@ async def remindme(interaction: discord.Interaction):
     await interaction.response.send_message(
         f"Added {interaction.user.mention} to be reminded of competition changes!"
     )
-
 
 # only allow people in competitor role to call this
 @tree.command(description="Remove yourself from the competition reminders.")

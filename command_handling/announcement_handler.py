@@ -25,7 +25,7 @@ def get_announcement_message(submission_channel_id):
 
     if date.today().day == 1:
         # First day of the month!
-        message += f'Today is the day! The start of the broncoder durby.\n\n__Reminders:__\n • Please partricipate in good faith.\n • Challenges are posted at {DAILY_ANNOUNCEMENT_TIME.strftime("%I : %M %p")}.\n • Submit solution files either through DM to me or in <#{submission_channel_id}> through the /submit command. \n\n **Happy trotting, Broncoders!**'
+        message += f'Today is the day! The start of the broncoder durby.\n\n__Reminders:__\n • Please partricipate in good faith.\n • Please practice/write your code on Leetcode for the provided problem first before submitting. While you can use me as a testing bot, it isn\'t encouraged.\n • Challenges are posted at {DAILY_ANNOUNCEMENT_TIME.strftime("%I : %M %p")}.\n • Submit solution files either through DM to me or in <#{submission_channel_id}> through the /submit command. \n\n **Happy trotting, Broncoders!**'
         message += "\n\n"
     elif todays_month != tomorrows_month:
         TIME_LEFT = END_HOUR - DAILY_HOUR
