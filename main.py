@@ -20,12 +20,12 @@ from command_handling.submission_handler import handle_submission
 from command_handling.rank_list_handler import format_rank_list
 from command_handling.first_handler import get_first_stats
 from command_handling.timeout_handler import readable
+from command_handling.admin.commands import randomize_cotd
 from command_handling.announcement_handler import (
     get_announcement_message,
     get_end_announcement_message,
 )
 from command_handling import admin as admin_commands
-
 
 # -------- Problem Submission ---------
 from messages.problem_view import ProblemView
@@ -262,7 +262,6 @@ async def submit(
 
 
 """ ---------- STATS ---------- """
-
 
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="Provides the Top given value members.")
@@ -520,6 +519,7 @@ async def daily_announcement():
 
     message = f"{role.mention}s, " + get_announcement_message(SUBMISSION_CHANNEL_ID)
     await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(message)
+    await randomize_cotd()
     await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(
         content="Today's challenge:",
         embed=embeds.get("info"),
@@ -536,6 +536,7 @@ async def end_competition_announcement():
     message = f"{role.mention}s, " + get_end_announcement_message(
         client, client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild
     )
+    ParticipantData.get_instance().clear()
     await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(message)
 
 
