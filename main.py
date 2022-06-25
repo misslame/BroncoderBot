@@ -105,6 +105,7 @@ async def on_guild_join(guild: Guild):
     await guild.text_channels[0].send(embed=default_announcement_msg)
 
 
+
 """ **************************************************
     COMMANDS
     currently supported commands:
@@ -133,13 +134,6 @@ async def on_guild_join(guild: Guild):
         * stopreminders: Remove yourself from the competition reminders.
 
 ****************************************************"""
-
-
-def check_submission_channel():
-    assert (
-        store.__getitem__("submission_channel_id") != 0
-    ), "Code submission channel not set"
-
 
 """ ---------- FUN ---------- """
 
@@ -195,7 +189,6 @@ async def hello(interaction: discord.Interaction):
 
 
 """ ---------- PROBLEM SUBMISSION ---------- """
-
 
 @tree.command(description="See today's problem.")
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
@@ -293,7 +286,6 @@ async def submit(
 
 """ ---------- STATS ---------- """
 
-
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="Provides the Top given value members.")
 @app_commands.describe(value="What number of the top members you want to see")
@@ -358,7 +350,6 @@ async def get_stats(interaction: discord.Interaction):
 
 """ ---------- UTILITY ---------- """
 
-
 @tree.command(
     description="Provides the rules and instructions to use the bot for the competition."
 )
@@ -406,152 +397,14 @@ async def stopreminders(interaction: discord.Interaction):
         f"Removed {interaction.user.mention} from the competition reminders!"
     )
 
-
-"""************************************************
-    Temporary & Testing Commands
-************************************************"""
-
-
-@tree.command(description="Test announcement command.")
-async def test_announcement(interaction: discord.Interaction):
-    ANNOUNCEMENT_CHANNEL_ID = store.__getitem__("announcement_channel_id")
-    SUBMISSION_CHANNEL_ID = store.__getitem__("submission_channel_id")
-
-    role = discord.utils.get(
-        client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder"
-    )
-    embeds = getProblemEmbeds(store["cotd"])
-
-    message = f"{role.mention}s, " + get_announcement_message(SUBMISSION_CHANNEL_ID)
-    await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(message)
-    await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(
-        content="Today's challenge:",
-        embed=embeds.get("info"),
-        view=ProblemView(embeds),
-    )
-
-
-@tree.command(description="Test announcement command.")
-async def test_end_announcement(interaction: discord.Interaction):
-    ANNOUNCEMENT_CHANNEL_ID = store.__getitem__("announcement_channel_id")
-
-    role = discord.utils.get(
-        client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder"
-    )
-
-    message = f"{role.mention}s, " + get_end_announcement_message(
-        client, client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild
-    )
-    await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(message)
-
-
-@app_commands.checks.cooldown(1, 1)
-@tree.command(description="Test Submit Command.")
-async def testsubmit(interaction: discord.Interaction):
-
-    await interaction.response.defer()
-    data = {
-        "filename": "test_submit_python.txt",
-        "id": 981136663499669554,
-        "proxy_url": "https://cdn.discordapp.com/attachments/846269630838603796/986811994952851456/test_submit_python.txt",
-        "size": 17,
-        "url": "https://cdn.discordapp.com/attachments/846269630838603796/986811994952851456/test_submit_python.txt",
-        "spoiler": False,
-        "content_type": "text; charset=utf-8",
-    }
-    attachment, language = (
-        discord.Attachment(data=data, state=interaction.client._get_state()),
-        "Python",
-    )
-    """ - used to test for first submission
-    submission = {
-        "msg": "Submission to leetcode.com completed", 
-        "err": False, 
-        "details": {
-            "result_state": "Accepted"
-        }
-    }
-    """
-
-    submission = await handle_submission(interaction, attachment, language)
-    # print(submission)
-
-    response_message = f"Thanks for uploading, {interaction.user.display_name}! Received {language} file: {attachment.filename}."
-
-    if not submission.get("err"):
-
-        difficulty_str = store["cotd"]["difficulty"]
-        difficulties = {"Easy": 1, "Medium": 2, "Hard": 3}
-        DIFFICULTY_POINT = difficulties[difficulty_str]
-        BONUS_POINTS = 1
-        was_first_submission = False
-
-        # TODO: add timestamp
-
-        # check cooldown
-        # app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
-
-        """ ** TESTING ** """
-
-        completion_percent = submission.get("details").get("result_progress_percent")
-
-        status = submission.get("details").get("result_state")
-
-        embed = createSubmissionEmbed(
-            details=submission["details"], uploader_name=interaction.user.name
-        )
-
-        if status == "Accepted":
-            if store.__getitem__("first_submission") == False:
-                was_first_submission = True
-                store.update({"first_submission": True})
-                DIFFICULTY_POINT += BONUS_POINTS
-                response_message += "\n**Congrats, you're the first person to submit! Here's an additional bonus point!**"
-
-            # Points.get_instance().addPoints(interaction.user.id, DIFFICULTY_POINT)  # we're not using this anymore, right?
-            ParticipantData.get_instance().update_stats(
-                interaction.user.id,
-                difficulty_str,
-                DIFFICULTY_POINT,
-                was_first_submission,
-            )
-            p = ParticipantData.get_instance().get_points(interaction.user.id)
-
-            await interaction.edit_original_message(
-                content=response_message + "\n\n"
-                f"{interaction.user.mention} has submitted their solution and received {DIFFICULTY_POINT} point{'s'[:DIFFICULTY_POINT ^ 1]}!\n"
-                f"{interaction.user.mention} now has {p} point{'s'[:p ^ 1]}!",
-                embed=embed,
-            )
-        else:
-            await interaction.edit_original_message(
-                content=response_message, embed=embed
-            )
-
-        return
-    else:
-        await interaction.edit_original_message(
-            content="",
-            embed=createSubmissionEmbed(
-                msg=submission["msg"], uploader_name=interaction.user.name
-            ),
-        )
-
-
-"""
-@app_commands.check(admin_permissions)
-@tree.command(description="Grant temp points")
-@app_commands.describe(setting="Target Category", point_value="Point Amount")
-async def givepoints(interaction: discord.Interaction, setting:str, point_value: int):
-    await interaction.response.send_message(
-        f"I have updated your point value for {interaction.user.id}"
-    )
-    ParticipantData.get_instance().add_points(interaction.user.id, setting, point_value)
-"""
-
 """******************************************************
     ERROR HANDLING
 ******************************************************"""
+def check_submission_channel():
+    assert (
+        store.__getitem__("submission_channel_id") != 0
+    ), "Code submission channel not set"
+
 
 
 @tree.error
