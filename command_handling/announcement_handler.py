@@ -5,7 +5,12 @@ from datetime import date, time
 from discord import channel
 
 from participant_data_handling.participant_data import ParticipantData
+from persistent_store import PersistentStore
+from problem_fetching.problem_fetch import getRandomQuestion
+from submission_handling.selenium import changeProblem
+from command_handling.admin.commands import update
 
+store = PersistentStore.get_instance()
 tz = zoneinfo.ZoneInfo("PST8PDT")
 
 DAILY_HOUR = 6
@@ -25,7 +30,7 @@ def get_announcement_message(submission_channel_id):
 
     if date.today().day == 1:
         # First day of the month!
-        message += f'Today is the day! The start of the broncoder durby.\n\n__Reminders:__\n • Please partricipate in good faith.\n • Challenges are posted at {DAILY_ANNOUNCEMENT_TIME.strftime("%I : %M %p")}.\n • Submit solution files either through DM to me or in <#{submission_channel_id}> through the /submit command. \n\n **Happy trotting, Broncoders!**'
+        message += f'Today is the day! The start of the broncoder durby.\n\n__Reminders:__\n • Please partricipate in good faith.\n • Please practice/write your code on Leetcode for the provided problem first before submitting. While you can use me as a testing bot, it isn\'t encouraged.\n • Challenges are posted at {DAILY_ANNOUNCEMENT_TIME.strftime("%I : %M %p")}.\n • Submit solution files either through DM to me or in <#{submission_channel_id}> through the /submit command. \n\n **Happy trotting, Broncoders!**'
         message += "\n\n"
     elif todays_month != tomorrows_month:
         TIME_LEFT = END_HOUR - DAILY_HOUR
@@ -72,6 +77,9 @@ def get_end_announcement_message(client: discord.Client, guild: discord.Guild):
             )
         else:
             message += "Too bad no one participated. Guess everyone turned in to glue."
+
+    store.__setitem__("first_submission", False)
+
     return message
 
 
@@ -89,3 +97,12 @@ def format_rank_list(guild: discord.guild, list: list[str], top: int):
         return response_message + "```"
     else:
         return f"no one participated..."
+
+
+async def randomize_cotd():
+    problem = await getRandomQuestion()
+    while "errors" in problem:
+        print("There was a problem setting up the challenge of the day... retrying")
+        problem = await getRandomQuestion()
+    await changeProblem(problem["titleSlug"])
+    update(problem)

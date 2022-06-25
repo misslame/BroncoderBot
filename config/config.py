@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import os
 
+
 load_dotenv()
 
 LEETCODE_USERNAME = os.environ.get("LEETCODE_USERNAME")
