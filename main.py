@@ -20,10 +20,10 @@ from command_handling.submission_handler import handle_submission
 from command_handling.rank_list_handler import format_rank_list
 from command_handling.first_handler import get_first_stats
 from command_handling.timeout_handler import readable
-from command_handling.admin.commands import randomize_cotd
 from command_handling.announcement_handler import (
     get_announcement_message,
     get_end_announcement_message,
+    randomize_cotd,
 )
 from command_handling import admin as admin_commands
 

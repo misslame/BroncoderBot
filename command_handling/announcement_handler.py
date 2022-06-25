@@ -5,6 +5,9 @@ from datetime import date, time
 from discord import channel
 
 from participant_data_handling.participant_data import ParticipantData
+from problem_fetching.problem_fetch import getRandomQuestion
+from submission_handling.selenium import changeProblem
+from command_handling.admin.commands import update
 
 tz = zoneinfo.ZoneInfo("PST8PDT")
 
@@ -89,3 +92,11 @@ def format_rank_list(guild: discord.guild, list: list[str], top: int):
         return response_message + "```"
     else:
         return f"no one participated..."
+
+async def randomize_cotd():
+    problem = await getRandomQuestion()
+    while "errors" in problem:
+        print("There was a problem setting up the challenge of the day... retrying")
+        problem = await getRandomQuestion()
+    await changeProblem(problem["titleSlug"])
+    update(problem)
