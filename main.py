@@ -105,7 +105,6 @@ async def on_guild_join(guild: Guild):
     await guild.text_channels[0].send(embed=default_announcement_msg)
 
 
-
 """ **************************************************
     COMMANDS
     currently supported commands:
@@ -189,6 +188,7 @@ async def hello(interaction: discord.Interaction):
 
 
 """ ---------- PROBLEM SUBMISSION ---------- """
+
 
 @tree.command(description="See today's problem.")
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
@@ -286,6 +286,7 @@ async def submit(
 
 """ ---------- STATS ---------- """
 
+
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="Provides the Top given value members.")
 @app_commands.describe(value="What number of the top members you want to see")
@@ -350,6 +351,7 @@ async def get_stats(interaction: discord.Interaction):
 
 """ ---------- UTILITY ---------- """
 
+
 @tree.command(
     description="Provides the rules and instructions to use the bot for the competition."
 )
@@ -397,14 +399,16 @@ async def stopreminders(interaction: discord.Interaction):
         f"Removed {interaction.user.mention} from the competition reminders!"
     )
 
+
 """******************************************************
     ERROR HANDLING
 ******************************************************"""
+
+
 def check_submission_channel():
     assert (
         store.__getitem__("submission_channel_id") != 0
     ), "Code submission channel not set"
-
 
 
 @tree.error
