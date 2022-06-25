@@ -82,8 +82,10 @@ async def randomize_cotd(interaction: discord.Interaction):
 #     await changeProblem(problem["titleSlug"])
 #     store.update({"cotd": problem})
 
+
 async def update(problem):
     store.update({"cotd": problem})
+
 
 __all__ = [
     "set_admin_role",

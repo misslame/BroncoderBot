@@ -93,6 +93,7 @@ def format_rank_list(guild: discord.guild, list: list[str], top: int):
     else:
         return f"no one participated..."
 
+
 async def randomize_cotd():
     problem = await getRandomQuestion()
     while "errors" in problem:
