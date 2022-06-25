@@ -1,7 +1,7 @@
 import discord
+from persistent_store import PersistentStore
 
-ANNOUNCEMENT_CHANNEL_ID = 846269630838603796  # TEMPORARY
-SUBMISSION_CHANNEL_ID = 846269630838603796  # TEMPORARY
+store = PersistentStore.get_instance()
 
 
 class InfoButton(discord.ui.Button["ChannelConfigView"]):
@@ -23,11 +23,9 @@ class AnnounceButton(discord.ui.Button["ChannelConfigView"]):
         )
 
     async def callback(self, interaction: discord.Interaction):
-        global ANNOUNCEMENT_CHANNEL_ID
-
         view: ChannelConfigView = self.view
         self.view.end_interaction()
-        ANNOUNCEMENT_CHANNEL_ID = self.channel_id
+        store.update({"announcement_channel_id": self.channel_id})
         await interaction.response.edit_message(
             content=f"Your announcement channel has been set to <#{self.channel_id}>",
             view=view,
@@ -40,11 +38,9 @@ class SubmissionButton(discord.ui.Button["ChannelConfigView"]):
         super().__init__(style=discord.ButtonStyle.blurple, label="Submission Channel")
 
     async def callback(self, interaction: discord.Interaction):
-        global SUBMISSION_CHANNEL_ID
-
         view: ChannelConfigView = self.view
         self.view.end_interaction()
-        SUBMISSION_CHANNEL_ID = self.channel_id
+        store.update({"submission_channel_id": self.channel_id})
         await interaction.response.edit_message(
             content=f"Your code submission channel has been set to <#{self.channel_id}>",
             view=view,
