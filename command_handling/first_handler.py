@@ -13,7 +13,7 @@ def get_first_stats(interaction: discord.Interaction):
     if (
         ParticipantData.get_instance().participants_stats
         or ParticipantData.get_instance().get_points(
-            ParticipantData.get_instane().get_top(1)[0]
+            ParticipantData.get_instance().get_top(1)[0]
         )
         > 0
     ):
@@ -33,7 +33,7 @@ def get_first_stats(interaction: discord.Interaction):
 
         if days_left > 0:
             response_message += (
-                f" There are {days_left} days left till the competition ends!\n"
+                f"There are {days_left} days left till the competition ends!\n"
             )
             if days_left <= 5:
                 response_message += f"Competition is tight..."

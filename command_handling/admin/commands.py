@@ -43,7 +43,6 @@ async def refresh_status(interaction: discord.Interaction):
 @app_commands.command(description="Change the problem of the day.")
 @app_commands.describe(title_slug="Problem title slug (the thing after the url)")
 async def change_cotd(interaction: discord.Interaction, title_slug: str):
-    # TODO: update persistant store
     await interaction.response.defer()
     problem = await getQuestionByTitleSlug(title_slug)
     if "errors" in problem:
@@ -60,7 +59,6 @@ async def change_cotd(interaction: discord.Interaction, title_slug: str):
 
 @app_commands.command(description="Randomize problem of the day")
 async def randomize_cotd(interaction: discord.Interaction):
-    # TODO: update persistant store
     await interaction.response.defer()
     problem = await getRandomQuestion()
     if "errors" in problem:
@@ -76,13 +74,13 @@ async def randomize_cotd(interaction: discord.Interaction):
 
 
 # I have put this in an unfortunate spot but... oh well.
-'''async def randomize_cotd():
-    problem = await getRandomQuestion()
-    while "errors" in problem:
-        print("There was a problem setting up the challenge of the day... retrying")
-        problem = await getRandomQuestion()
-    await changeProblem(problem["titleSlug"])
-    store.update({"cotd": problem})'''
+# async def randomize_cotd():
+#     problem = await getRandomQuestion()
+#     while "errors" in problem:
+#         print("There was a problem setting up the challenge of the day... retrying")
+#         problem = await getRandomQuestion()
+#     await changeProblem(problem["titleSlug"])
+#     store.update({"cotd": problem})
 
 async def update(problem):
     store.update({"cotd": problem})
