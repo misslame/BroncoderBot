@@ -205,12 +205,6 @@ async def submit(
         BONUS_POINTS = 1
         was_first_submission = False
 
-        if store.__getitem__("first_submission") == False:
-            was_first_submission = True
-            store.update({"first_submission": True})
-            points += BONUS_POINTS
-            response_message += "\n**Congrats, you're the first person to submit! Here's an additional bonus point!**"
-
         completion_percent = submission.get("details").get("result_progress_percent")
 
         status = submission.get("details").get("result_state")
@@ -220,6 +214,12 @@ async def submit(
         )
 
         if status == "Accepted":
+            if store.__getitem__("first_submission") == False:
+                was_first_submission = True
+                store.update({"first_submission": True})
+                points += BONUS_POINTS
+                response_message += "\n**Congrats, you're the first person to submit! Here's an additional bonus point!**"
+
             ParticipantData.get_instance().update_stats(
                 interaction.user.id, difficulty_str, points, was_first_submission
             )
