@@ -45,8 +45,7 @@ class ParticipantData:
         self.participants_stats = {}
 
         if fileContent:
-            raw_stats: dict = json.loads(
-                fileContent).get("participant_stats", {})
+            raw_stats: dict = json.loads(fileContent).get("participant_stats", {})
 
             for k, v in raw_stats.items():
                 self.participants_stats[k] = Participant(**v)
