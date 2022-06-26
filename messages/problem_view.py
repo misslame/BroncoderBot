@@ -67,10 +67,10 @@ class ConstraintsButton(discord.ui.Button["ProblemView"]):
 
 
 class ProblemView(discord.ui.View):
-    def __init__(self, embeds, user_id=0):
+    def __init__(self, embeds, timeout=180, user_id=0):
 
         super().__init__()
-
+        self.timeout = timeout
         self.buttons = {}
 
         self.current = "info"
@@ -80,7 +80,8 @@ class ProblemView(discord.ui.View):
         self.user_id = user_id
 
         if embeds.get("description"):
-            self.buttons["description"] = DescriptionButton(embeds["description"])
+            self.buttons["description"] = DescriptionButton(
+                embeds["description"])
             self.add_item(self.buttons["description"])
 
         if embeds.get("examples"):
@@ -88,7 +89,8 @@ class ProblemView(discord.ui.View):
             self.add_item(self.buttons["examples"])
 
         if embeds.get("constraints"):
-            self.buttons["constraints"] = ConstraintsButton(embeds["constraints"])
+            self.buttons["constraints"] = ConstraintsButton(
+                embeds["constraints"])
             self.add_item(self.buttons["constraints"])
 
     def set_current(self, new):

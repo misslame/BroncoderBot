@@ -206,7 +206,7 @@ async def current_challenge(interaction: discord.Interaction):
     await interaction.response.send_message(
         content="Today's challenge:",
         embed=embeds.get("info"),
-        view=ProblemView(embeds, interaction.user.id),
+        view=ProblemView(embeds, None, interaction.user.id),
     )
 
 
@@ -251,7 +251,8 @@ async def submit(
         BONUS_POINTS = 1
         was_first_submission = False
 
-        completion_percent = submission.get("details").get("result_progress_percent")
+        completion_percent = submission.get(
+            "details").get("result_progress_percent")
 
         status = submission.get("details").get("result_state")
 
@@ -347,7 +348,8 @@ async def get_stats(interaction: discord.Interaction):
         ),
         color=discord.Color.from_str("#FFB500"),
     )
-    participant_stats_embed.set_thumbnail(url=interaction.user.display_avatar.url)
+    participant_stats_embed.set_thumbnail(
+        url=interaction.user.display_avatar.url)
     participant_stats_embed.add_field(
         name="Badge",
         value=ParticipantData.get_instance().get_badge(interaction.user.id),
@@ -418,16 +420,18 @@ async def test_announcement(interaction: discord.Interaction):
     SUBMISSION_CHANNEL_ID = store.__getitem__("submission_channel_id")
 
     role = discord.utils.get(
-        client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder"
+        client.get_channel(
+            ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder"
     )
     embeds = getProblemEmbeds(store["cotd"])
 
-    message = f"{role.mention}s, " + get_announcement_message(SUBMISSION_CHANNEL_ID)
+    message = f"{role.mention}s, " + \
+        get_announcement_message(SUBMISSION_CHANNEL_ID)
     await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(message)
     await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(
         content="Today's challenge:",
         embed=embeds.get("info"),
-        view=ProblemView(embeds),
+        view=ProblemView(embeds, None),
     )
 
 
@@ -436,7 +440,8 @@ async def test_end_announcement(interaction: discord.Interaction):
     ANNOUNCEMENT_CHANNEL_ID = store.__getitem__("announcement_channel_id")
 
     role = discord.utils.get(
-        client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder"
+        client.get_channel(
+            ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder"
     )
 
     message = f"{role.mention}s, " + get_end_announcement_message(
@@ -493,7 +498,8 @@ async def testsubmit(interaction: discord.Interaction):
 
         """ ** TESTING ** """
 
-        completion_percent = submission.get("details").get("result_progress_percent")
+        completion_percent = submission.get(
+            "details").get("result_progress_percent")
 
         status = submission.get("details").get("result_state")
 
@@ -605,11 +611,13 @@ async def daily_announcement():
     SUBMISSION_CHANNEL_ID = store.__getitem__("submission_channel_id")
 
     role = discord.utils.get(
-        client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder"
+        client.get_channel(
+            ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder"
     )
     embeds = getProblemEmbeds(store["cotd"])
 
-    message = f"{role.mention}s, " + get_announcement_message(SUBMISSION_CHANNEL_ID)
+    message = f"{role.mention}s, " + \
+        get_announcement_message(SUBMISSION_CHANNEL_ID)
     await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(message)
     await randomize_cotd()
     await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).send(
@@ -624,7 +632,8 @@ async def end_competition_announcement():
     ANNOUNCEMENT_CHANNEL_ID = store.__getitem__("announcement_channel_id")
 
     role = discord.utils.get(
-        client.get_channel(ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder"
+        client.get_channel(
+            ANNOUNCEMENT_CHANNEL_ID).guild.roles, name="Broncoder"
     )
 
     message = f"{role.mention}s, " + get_end_announcement_message(
