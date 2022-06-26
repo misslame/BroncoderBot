@@ -13,7 +13,7 @@ from heapq import nlargest
 class ParticipantData:
 
     # Static Member: participants - holds participant stats
-    participants_stats: dict
+    participants_stats: dict[int, dict[str, int]]
     participants_stats = {}  # Participants
 
     # Singleton requirement: Static Instance representing the class
@@ -45,7 +45,8 @@ class ParticipantData:
         self.participants_stats = {}
 
         if fileContent:
-            raw_stats: dict = json.loads(fileContent).get("participant_stats", {})
+            raw_stats: dict = json.loads(
+                fileContent).get("participant_stats", {})
 
             for k, v in raw_stats.items():
                 self.participants_stats[k] = Participant(**v)
@@ -78,6 +79,15 @@ class ParticipantData:
             self.participants_stats,
             key=lambda x: self.participants_stats[x].points,
         )
+
+    # get people in first place
+    def get_firsts(self) -> list[int]:
+        highest = self.get_points(self.get_top(1)[0])
+        firsts = []
+        for key, participant in self.participants_stats.items():
+            if participant.points == highest:
+                firsts.append(key)
+        return firsts
 
     # get points of an individual user
     def get_points(self, userID: int):
