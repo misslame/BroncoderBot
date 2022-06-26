@@ -202,11 +202,11 @@ async def hello(interaction: discord.Interaction):
 async def current_challenge(interaction: discord.Interaction):
     check_submission_channel()
     embeds = getProblemEmbeds(store["cotd"])
-
+    
     await interaction.response.send_message(
         content="Today's challenge:",
         embed=embeds.get("info"),
-        view=ProblemView(embeds),
+        view=ProblemView(embeds, interaction.user.id),
     )
 
 
