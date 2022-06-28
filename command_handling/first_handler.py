@@ -13,7 +13,7 @@ def get_first_stats(interaction: discord.Interaction):
     # Check if there are participants:
     if (
         ParticipantData.get_instance().participants_stats
-        or ParticipantData.get_instance().get_points(
+        and ParticipantData.get_instance().get_points(
             ParticipantData.get_instance().get_top(1)[0]
         )
         > 0
