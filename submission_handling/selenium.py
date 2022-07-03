@@ -1,3 +1,4 @@
+from operator import truediv
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
@@ -12,16 +13,28 @@ from submission_handling.browser_state import *
 from problem_fetching.problem_fetch import getQuestionByTitleSlug
 import asyncio
 import copy
+import os
 
 # TODO: Add captcha support to some extent
 
-desired_capabilities = DesiredCapabilities.CHROME
 timeout = 60
 
 my_browser_state = BrowserState()
 options = webdriver.ChromeOptions()
+"""
+desired_capabilities = DesiredCapabilities.CHROME
 options.add_experimental_option("excludeSwitches", ["enable-logging"])
 driver = webdriver.Chrome(desired_capabilities=desired_capabilities, options=options)
+"""
+
+options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+options.add_argument("--headless")
+options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--no-sandbox")
+driver = webdriver.Chrome(
+    executable_path=os.environ.get("CHROMEDRIVER_PATH"), options=options
+)
+
 
 response_dict_base = {"msg": None, "err": False, "details": {}}
 

@@ -10,6 +10,8 @@ class InfoButton(discord.ui.Button["ProblemView"]):
 
     async def callback(self, interaction: discord.Interaction):
         view: ProblemView = self.view
+        if view.user_id != 0 and view.user_id != interaction.user.id:
+            return
         self.view.set_current("info")
         await interaction.response.edit_message(
             content="**Today's challenge:**", embed=self.embed, view=view
@@ -23,6 +25,9 @@ class DescriptionButton(discord.ui.Button["ProblemView"]):
 
     async def callback(self, interaction: discord.Interaction):
         view: ProblemView = self.view
+        if view.user_id != 0 and view.user_id != interaction.user.id:
+            return
+
         self.view.set_current("description")
         await interaction.response.edit_message(
             content="**Today's challenge:**", embed=self.embed, view=view
@@ -36,6 +41,9 @@ class ExamplesButton(discord.ui.Button["ProblemView"]):
 
     async def callback(self, interaction: discord.Interaction):
         view: ProblemView = self.view
+        if view.user_id != 0 and view.user_id != interaction.user.id:
+            return
+
         self.view.set_current("examples")
         await interaction.response.edit_message(
             content="**Today's challenge:**", embed=self.embed, view=view
@@ -49,6 +57,9 @@ class ConstraintsButton(discord.ui.Button["ProblemView"]):
 
     async def callback(self, interaction: discord.Interaction):
         view: ProblemView = self.view
+        if view.user_id != 0 and view.user_id != interaction.user.id:
+            return
+
         self.view.set_current("constraints")
         await interaction.response.edit_message(
             content="**Today's challenge:**", embed=self.embed, view=view
@@ -56,15 +67,17 @@ class ConstraintsButton(discord.ui.Button["ProblemView"]):
 
 
 class ProblemView(discord.ui.View):
-    def __init__(self, embeds):
+    def __init__(self, embeds, timeout=180, user_id=0):
 
         super().__init__()
-
+        self.timeout = timeout
         self.buttons = {}
 
         self.current = "info"
         self.buttons["info"] = InfoButton(embeds["info"])
         self.add_item(self.buttons["info"])
+
+        self.user_id = user_id
 
         if embeds.get("description"):
             self.buttons["description"] = DescriptionButton(embeds["description"])
