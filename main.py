@@ -399,6 +399,7 @@ async def stopreminders(interaction: discord.Interaction):
         f"Removed {interaction.user.mention} from the competition reminders!"
     )
 
+
 """************************************************
     Temporary & Testing Commands
 ************************************************"""
