@@ -134,13 +134,6 @@ async def on_guild_join(guild: Guild):
 
 ****************************************************"""
 
-
-def check_submission_channel():
-    assert (
-        store.__getitem__("submission_channel_id") != 0
-    ), "Code submission channel not set"
-
-
 """ ---------- FUN ---------- """
 
 greeting = [
@@ -406,7 +399,6 @@ async def stopreminders(interaction: discord.Interaction):
         f"Removed {interaction.user.mention} from the competition reminders!"
     )
 
-
 """************************************************
     Temporary & Testing Commands
 ************************************************"""
@@ -552,6 +544,12 @@ async def givepoints(interaction: discord.Interaction, setting:str, point_value:
 """******************************************************
     ERROR HANDLING
 ******************************************************"""
+
+
+def check_submission_channel():
+    assert (
+        store.__getitem__("submission_channel_id") != 0
+    ), "Code submission channel not set"
 
 
 @tree.error
