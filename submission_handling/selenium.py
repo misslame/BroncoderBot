@@ -1,3 +1,4 @@
+from operator import truediv
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
@@ -21,6 +22,7 @@ timeout = 60
 my_browser_state = BrowserState()
 options = webdriver.ChromeOptions()
 options.add_experimental_option("excludeSwitches", ["enable-logging"])
+options.headless = True
 driver = webdriver.Chrome(desired_capabilities=desired_capabilities, options=options)
 
 response_dict_base = {"msg": None, "err": False, "details": {}}
