@@ -546,8 +546,9 @@ async def givepoints(interaction: discord.Interaction, setting:str, point_value:
 
 async def check_submission_channel():
     assert (
-            store.__getitem__("submission_channel_id") != 0
-        ), "Code submission channel not set"
+        store.__getitem__("submission_channel_id") != 0
+    ), "Code submission channel not set"
+
 
 @tree.error
 async def tree_errors(
