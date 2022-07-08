@@ -28,7 +28,7 @@ async def handle_submission(
     response_message = f"Thanks for uploading, {interaction.user.display_name}! Recieved {language} file: {attachment.filename}."
     response_message += "\n\nPlease wait while we check your submission..."
 
-    await interaction.followup.send(response_message)
+    await interaction.response.send_message(response_message)
     return await submitAttachmentToLeetcode(attachment, language)
 
     """

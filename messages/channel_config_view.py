@@ -4,17 +4,6 @@ from persistent_store import PersistentStore
 store = PersistentStore.get_instance()
 
 
-class InfoButton(discord.ui.Button["ChannelConfigView"]):
-    def __init__(self):
-        super().__init__(
-            style=discord.ButtonStyle.secondary, label="Info", disabled=True
-        )
-
-    async def callback(self, interaction: discord.Interaction):
-        view: ChannelConfigView = self.view
-        await interaction.response.edit_message(content="Info", view=view)
-
-
 class AnnounceButton(discord.ui.Button["ChannelConfigView"]):
     def __init__(self, channel_id):
         self.channel_id = channel_id
@@ -53,9 +42,6 @@ class ChannelConfigView(discord.ui.View):
         super().__init__()
 
         self.buttons = {}
-
-        self.buttons["info"] = InfoButton()
-        self.add_item(self.buttons["info"])
 
         self.buttons["announce"] = AnnounceButton(channel_id)
         self.add_item(self.buttons["announce"])
