@@ -550,10 +550,10 @@ async def check_submission_channel(interaction: discord.Interaction, sent_channe
     assert (
         store.__getitem__("submission_channel_id") != 0
     ), "Code submission channel not set"
-    
+
     if sent_channel != store.__getitem__("submission_channel_id"):
         await interaction.response.send_message(
-            content= f"You sent this command in the wrong channel! Please use <#{store.__getitem__('submission_channel_id')}>",
+            content=f"You sent this command in the wrong channel! Please use <#{store.__getitem__('submission_channel_id')}>",
             ephemeral=True,
         )
 
