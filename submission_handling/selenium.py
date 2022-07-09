@@ -21,7 +21,8 @@ timeout = 60
 
 my_browser_state = BrowserState()
 options = webdriver.ChromeOptions()
-"""
+
+""" Used for local testing
 desired_capabilities = DesiredCapabilities.CHROME
 options.add_experimental_option("excludeSwitches", ["enable-logging"])
 driver = webdriver.Chrome(desired_capabilities=desired_capabilities, options=options)
@@ -35,6 +36,7 @@ driver = webdriver.Chrome(
     service=Service(executable_path=os.environ.get("CHROMEDRIVER_PATH")),
     options=options,
 )
+# Used for Heroku Testing
 
 
 response_dict_base = {"msg": None, "err": False, "details": {}}

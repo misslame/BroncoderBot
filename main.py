@@ -180,7 +180,7 @@ greeting = [
 @tree.command(description="Say hello.")
 @app_commands.checks.cooldown(1, 1)
 async def hello(interaction: discord.Interaction):
-    await check_submission_channel()
+    await check_submission_channel(interaction, interaction.channel_id)
     entry = random.randrange(0, len(greeting) - 1)
     await interaction.response.send_message(
         f"{greeting[entry]} {interaction.user.mention}"
@@ -193,7 +193,7 @@ async def hello(interaction: discord.Interaction):
 @tree.command(description="See today's problem.")
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 async def current_challenge(interaction: discord.Interaction):
-    await check_submission_channel()
+    await check_submission_channel(interaction, interaction.channel_id)
     embeds = getProblemEmbeds(store["cotd"])
 
     await interaction.response.send_message(
@@ -230,7 +230,7 @@ async def submit(
         "Elixir",
     ],
 ):
-    await check_submission_channel()
+    await check_submission_channel(interaction, interaction.channel_id)
     submission = await handle_submission(interaction, attachment, language)
 
     response_message = f"Thanks for uploading, {interaction.user.display_name}! Received {language} file: {attachment.filename}."
@@ -290,7 +290,7 @@ async def submit(
 @tree.command(description="Provides the Top given value members.")
 @app_commands.describe(value="What number of the top members you want to see")
 async def top(interaction: discord.Interaction, value: int):
-    await check_submission_channel()
+    await check_submission_channel(interaction, interaction.channel_id)
     await interaction.response.send_message(
         await format_rank_list(
             interaction, ParticipantData.get_instance().get_top(value), value
@@ -301,7 +301,7 @@ async def top(interaction: discord.Interaction, value: int):
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="provides the Top 10 members.")
 async def top10(interaction: discord.Interaction):
-    await check_submission_channel()
+    await check_submission_channel(interaction, interaction.channel_id)
     await interaction.response.send_message(
         await format_rank_list(
             interaction, ParticipantData.get_instance().get_top(10), 10
@@ -312,7 +312,7 @@ async def top10(interaction: discord.Interaction):
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="Provides how many points you have.")
 async def mypoints(interaction: discord.Interaction):
-    await check_submission_channel()
+    await check_submission_channel(interaction, interaction.channel_id)
     await interaction.response.send_message(
         f"You currently have {ParticipantData.get_instance().get_points(interaction.user.id)} point(s)."
     )
@@ -321,13 +321,13 @@ async def mypoints(interaction: discord.Interaction):
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 @tree.command(description="Compares you with the first place member.")
 async def first(interaction: discord.Interaction):
-    await check_submission_channel()
+    await check_submission_channel(interaction, interaction.channel_id)
     await interaction.followup.send(get_first_stats(interaction))
 
 
 @tree.command(description="Display your personal stats.")
 async def get_stats(interaction: discord.Interaction):
-    await check_submission_channel()
+    await check_submission_channel(interaction, interaction.channel_id)
 
     ParticipantData.get_instance().add_participant(interaction.user.id)
     participant_stats_embed = discord.Embed(
@@ -343,7 +343,7 @@ async def get_stats(interaction: discord.Interaction):
         value=ParticipantData.get_instance().get_badge(interaction.user.id),
     )
 
-    await interaction.followup.send(embed=participant_stats_embed)
+    await interaction.response.send_message(embed=participant_stats_embed)
 
 
 """ ---------- UTILITY ---------- """
@@ -354,6 +354,7 @@ async def get_stats(interaction: discord.Interaction):
 )
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 async def rules(interaction: discord.Interaction):
+    await check_submission_channel(interaction, interaction.channel_id)
     await interaction.response.send_message(
         f'**Rules**\n---------\n • Please partricipate in good faith. Don\'t cheat! This competition is to help you improve on your leetcode skills and facilitate fun in our server. If you cheat you are defeating the purpose.\n\n • Challenges are posted at {DAILY_ANNOUNCEMENT_TIME.strftime("%I : %M %p")} in the announcement channel.\n\n • Submit solution files either through DM to me or in the submission channel through the /submit command.\n\n • Opt in to reminder pings through the /remindme command and opt out through the /stopreminders command.\n\n\n ***Happy Trotting Broncoder!***'
     )
@@ -362,6 +363,7 @@ async def rules(interaction: discord.Interaction):
 @tree.command(description="Provides a list of supported non admin commands.")
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 async def supported_commands(interaction: discord.Interaction):
+    await check_submission_channel(interaction, interaction.channel_id)
     await interaction.response.send_message(
         f"**************************************************\n    COMMANDS\n    currently supported commands:\n        ---------------------------\n        FUN\n        * hello : Say hello.\n\n        ---------------------------\n        PROBLEM SUBMISSION\n        * current_challenge : See today's problem.\n        * submit : Submit your code to be tested and judged.\n\n        ---------------------------\n        STATS\n        * top: Provides the Top given value members.\n        * top10: Provides the Top 10 members\n        * mypoints: Provides how many points you have.\n        * first: Compares you with the first place member.\n        * get_stats: Display your personal stats.\n\n        ---------------------------\n        UTILITY\n        * rules: Provides the rules and instructions to use the bot for the competition.\n        * supported_commands: Provides a list of supported non admin commands.\n       * remindme: Enroll yourself in competition reminders.\n        * stopreminders: Remove yourself from the competition reminders.\n\n****************************************************"
     )
@@ -370,7 +372,7 @@ async def supported_commands(interaction: discord.Interaction):
 @tree.command(description="Enroll yourself in competition reminders.")
 @app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 async def remindme(interaction: discord.Interaction):
-    await check_submission_channel()
+    await check_submission_channel(interaction, interaction.channel_id)
     if "Broncoder" in [u.name for u in interaction.user.roles]:
         # Add file?
         await interaction.response.send_message(
@@ -389,7 +391,7 @@ async def remindme(interaction: discord.Interaction):
 @app_commands.checks.has_role("Broncoder")
 # add error catch to not crash
 async def stopreminders(interaction: discord.Interaction):
-    await check_submission_channel()
+    await check_submission_channel(interaction, interaction.channel_id)
     comp_role = discord.utils.get(interaction.guild.roles, name="Broncoder")
     await interaction.user.remove_roles(comp_role)
     await interaction.response.send_message(
@@ -544,10 +546,16 @@ async def givepoints(interaction: discord.Interaction, setting:str, point_value:
 ******************************************************"""
 
 
-async def check_submission_channel():
+async def check_submission_channel(interaction: discord.Interaction, sent_channel: int):
     assert (
         store.__getitem__("submission_channel_id") != 0
     ), "Code submission channel not set"
+    
+    if sent_channel != store.__getitem__("submission_channel_id"):
+        await interaction.response.send_message(
+            content= f"You sent this command in the wrong channel! Please use <#{store.__getitem__('submission_channel_id')}>",
+            ephemeral=True,
+        )
 
 
 @tree.error
