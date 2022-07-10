@@ -26,7 +26,9 @@ options = webdriver.ChromeOptions()
 if LOCAL_TESTING:
     desired_capabilities = DesiredCapabilities.CHROME
     options.add_experimental_option("excludeSwitches", ["enable-logging"])
-    driver = webdriver.Chrome(desired_capabilities=desired_capabilities, options=options)
+    driver = webdriver.Chrome(
+        desired_capabilities=desired_capabilities, options=options
+    )
 else:
     options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
     options.add_argument("--headless")
