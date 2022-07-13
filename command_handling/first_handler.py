@@ -8,7 +8,8 @@ from command_handling.announcement_handler import END_COMPETITION_ANNOUNCEMENT_T
 
 
 def get_first_stats(interaction: discord.Interaction):
-    days_left = monthrange(date.today().year, date.today().month)[1] - date.today().day
+    days_left = monthrange(date.today().year, date.today().month)[
+        1] - date.today().day
 
     # Check if there are participants:
     if (
@@ -22,18 +23,20 @@ def get_first_stats(interaction: discord.Interaction):
         # get list of users in first place
         first_places = list(
             map(
-                lambda id: interaction.guild.get_member(int(id)).display_name, first_ids
+                lambda id: interaction.guild.get_member(
+                    int(id)).display_name, first_ids
             )
         )
         # check if user is in first place
-        user_is_first = first_places.__contains__(interaction.user.display_name)
+        user_is_first = first_places.__contains__(
+            interaction.user.display_name)
         # remove user from list
         if first_places.__contains__(interaction.user.display_name):
             first_places.remove(interaction.user.display_name)
 
         # makes string containing list of people in first place (except user)
         first_place_message = ""
-        if len(first_places) == 1:
+        if len(first_places) == 0:
             first_place_message = f"{first_places[0]}"
         else:
             # form list of first place
@@ -48,7 +51,7 @@ def get_first_stats(interaction: discord.Interaction):
         if user_is_first:  # first place is triggering command!
             response_message = f"You are first place! Keep it up, you have {ParticipantData.get_instance().get_points(interaction.user.id)} point(s)!\n"
 
-            if not len(first_places) == 1:
+            if not len(first_places) == 0:
                 response_message = f"You are tied with {first_place_message}\n"
         else:
             points_behind = ParticipantData.get_instance().get_points(
