@@ -45,7 +45,7 @@ from messages.channel_config_view import ChannelConfigView
 
 intenderinos = discord.Intents.default()
 intenderinos.members = True
-# I was here 
+# I was here
 activity = discord.activity.Activity(
     type=discord.ActivityType.competing, name="Leetcode"
 )
