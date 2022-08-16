@@ -1,6 +1,6 @@
 import discord
+import aiosqlite
 from submission_handling.selenium import submitAttachmentToLeetcode
-from messages.embeds import createSubmissionEmbed
 
 """
 Dictionary of supported languages
@@ -27,6 +27,13 @@ async def handle_submission(
 
     response_message = f"Thanks for uploading, {interaction.user.display_name}! Recieved {language} file: {attachment.filename}."
     response_message += "\n\nPlease wait while we check your submission..."
+
+    submitted_multiple = check_user_status(interaction.user.id)
+    if submitted_multiple:
+        return {
+            "err": "Multiple submissions",
+            "msg": "You have already submitted a solution to the problem for today!"
+        }
 
     await interaction.followup.send(response_message)
     return await submitAttachmentToLeetcode(attachment, language)
@@ -67,3 +74,22 @@ def get_extension(
 def verify_language(attachment, language, extension):
     # file verification.
     return attachment.filename[-len(extension) :] == extension
+
+
+async def check_user_status(user_id: int):
+    async with aiosqlite.connect("participants.db") as db:
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS participant_submitted (
+                user_id INTEGER,
+                has_submitted INTEGER 
+            )
+        """)
+
+        async with db.execute("SELECT * FROM participant_submitted WHERE user_id = ?", (user_id,)) as cursor:
+            row = await cursor.fetchone()
+            if row is None:
+                await db.execute("INSERT INTO participant_submitted VALUES (?, ?)", (user_id,1))
+                await db.commit()
+                return False
+            
+            return True

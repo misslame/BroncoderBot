@@ -292,7 +292,7 @@ async def submit(
         await interaction.followup.send(
             content="",
             embed=createSubmissionEmbed(
-                msg=submission["msg"], uploader_name=interaction.user.name
+                msg=submission.get("msg"), uploader_name=interaction.user.name
             ),
         )
 

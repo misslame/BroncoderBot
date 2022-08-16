@@ -2,7 +2,7 @@ import discord
 import zoneinfo
 import datetime
 from datetime import date, time
-from discord import channel
+import aiosqlite
 
 from participant_data_handling.participant_data import ParticipantData
 from persistent_store import PersistentStore
@@ -106,3 +106,7 @@ async def randomize_cotd():
         problem = await getRandomQuestion()
     await changeProblem(problem["titleSlug"])
     update(problem)
+
+    async with aiosqlite.connect("participants.db") as db:
+        await db.execute("DELETE FROM participant_submitted WHERE has_submitted = 1")
+        await db.commit()

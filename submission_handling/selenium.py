@@ -170,18 +170,8 @@ async def submitCode(code, language="Python3"):
 
     await typeCode(code)
 
-    # driver.find_element(By.XPATH, '//button[@data-cy="submit-code-btn"]').click()
-    driver.find_element(
-        By.XPATH,
-        '//*[@id="app"]/div/div[2]/div[1]/div/div[3]/div/div[3]/div[2]/div/button/span',
-    ).click()
-    # Attempt at finding an alternate path to click the button by clicking the inner span within the button
-
-    """
-    BUG: Error seems to be around this region. My assumption is that the submit button is somehow not being clicked.
-    Commenting out the code segment below containing 'status_present' will throw a TimeoutException-related error saying that a timeout occurred in trying to find the element of 'detail_present'
-    Commenting out both code segments of 'status_present' and 'detail_present' will causes 'result_url' to throw an error of being unable to find the element in question.
-    """
+    driver.find_element(By.XPATH, '//button[@data-cy="submit-code-btn"]').click()
+    
     try:
         status_present = EC.presence_of_element_located((By.CLASS_NAME, "status__1eAa"))
 
