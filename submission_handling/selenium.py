@@ -171,7 +171,7 @@ async def submitCode(code, language="Python3"):
     await typeCode(code)
 
     driver.find_element(By.XPATH, '//button[@data-cy="submit-code-btn"]').click()
-    
+
     try:
         status_present = EC.presence_of_element_located((By.CLASS_NAME, "status__1eAa"))
 

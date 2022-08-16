@@ -32,7 +32,7 @@ async def handle_submission(
     if submitted_multiple:
         return {
             "err": "Multiple submissions",
-            "msg": "You have already submitted a solution to the problem for today!"
+            "msg": "You have already submitted a solution to the problem for today!",
         }
 
     await interaction.followup.send(response_message)
@@ -78,18 +78,24 @@ def verify_language(attachment, language, extension):
 
 async def check_user_status(user_id: int):
     async with aiosqlite.connect("participants.db") as db:
-        await db.execute("""
+        await db.execute(
+            """
             CREATE TABLE IF NOT EXISTS participant_submitted (
                 user_id INTEGER,
                 has_submitted INTEGER 
             )
-        """)
+        """
+        )
 
-        async with db.execute("SELECT * FROM participant_submitted WHERE user_id = ?", (user_id,)) as cursor:
+        async with db.execute(
+            "SELECT * FROM participant_submitted WHERE user_id = ?", (user_id,)
+        ) as cursor:
             row = await cursor.fetchone()
             if row is None:
-                await db.execute("INSERT INTO participant_submitted VALUES (?, ?)", (user_id,1))
+                await db.execute(
+                    "INSERT INTO participant_submitted VALUES (?, ?)", (user_id, 1)
+                )
                 await db.commit()
                 return False
-            
+
             return True
