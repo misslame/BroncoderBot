@@ -33,7 +33,7 @@ def get_first_stats(interaction: discord.Interaction):
 
         # makes string containing list of people in first place (except user)
         first_place_message = ""
-        if len(first_places) == 1:
+        if len(first_places) == 0:
             first_place_message = f"{first_places[0]}"
         else:
             # form list of first place
@@ -48,7 +48,7 @@ def get_first_stats(interaction: discord.Interaction):
         if user_is_first:  # first place is triggering command!
             response_message = f"You are first place! Keep it up, you have {ParticipantData.get_instance().get_points(interaction.user.id)} point(s)!\n"
 
-            if not len(first_places) == 1:
+            if not len(first_places) == 0:
                 response_message = f"You are tied with {first_place_message}\n"
         else:
             points_behind = ParticipantData.get_instance().get_points(

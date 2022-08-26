@@ -1,5 +1,5 @@
-from operator import truediv
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -17,24 +17,28 @@ import os
 
 # TODO: Add captcha support to some extent
 
+LOCAL_TESTING = False
 timeout = 60
 
 my_browser_state = BrowserState()
 options = webdriver.ChromeOptions()
-"""
-desired_capabilities = DesiredCapabilities.CHROME
-options.add_experimental_option("excludeSwitches", ["enable-logging"])
-driver = webdriver.Chrome(desired_capabilities=desired_capabilities, options=options)
-"""
 
-options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
-options.add_argument("--headless")
-options.add_argument("--disable-dev-shm-usage")
-options.add_argument("--no-sandbox")
-driver = webdriver.Chrome(
-    executable_path=os.environ.get("CHROMEDRIVER_PATH"), options=options
-)
-
+if LOCAL_TESTING:
+    desired_capabilities = DesiredCapabilities.CHROME
+    options.add_experimental_option("excludeSwitches", ["enable-logging"])
+    driver = webdriver.Chrome(
+        desired_capabilities=desired_capabilities, options=options
+    )
+else:
+    options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+    options.add_argument("--headless")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--no-sandbox")
+    driver = webdriver.Chrome(
+        service=Service(executable_path=os.environ.get("CHROMEDRIVER_PATH")),
+        options=options,
+    )
+    # Used for Heroku Testing
 
 response_dict_base = {"msg": None, "err": False, "details": {}}
 
@@ -64,12 +68,6 @@ async def setup(question):
         exit()
 
     driver.find_element(By.ID, "signin_btn").click()
-
-    try:
-        element_present = EC.presence_of_element_located((By.ID, "profile-app"))
-        WebDriverWait(driver, timeout).until(element_present)
-    except TimeoutException:
-        exit()
 
     driver.get("https://leetcode.com/problems/{}".format(question["titleSlug"]))
 
@@ -172,16 +170,22 @@ async def submitCode(code, language="Python3"):
 
     await typeCode(code)
 
-    driver.find_element(By.XPATH, '//button[@data-cy="submit-code-btn"]').click()
-    try:
-        pending_present = EC.presence_of_element_located(
-            (By.XPATH, "//*[contains(text(), 'Pending')]")
-        )
+    # driver.find_element(By.XPATH, '//button[@data-cy="submit-code-btn"]').click()
+    driver.find_element(
+        By.XPATH,
+        '//*[@id="app"]/div/div[2]/div[1]/div/div[3]/div/div[3]/div[2]/div/button/span',
+    ).click()
+    # Attempt at finding an alternate path to click the button by clicking the inner span within the button
 
-        judging_present = EC.presence_of_element_located(
-            (By.XPATH, "//*[contains(text(), 'Judging')]")
-        )
-        WebDriverWait(driver, timeout).until(pending_present or judging_present)
+    """
+    BUG: Error seems to be around this region. My assumption is that the submit button is somehow not being clicked.
+    Commenting out the code segment below containing 'status_present' will throw a TimeoutException-related error saying that a timeout occurred in trying to find the element of 'detail_present'
+    Commenting out both code segments of 'status_present' and 'detail_present' will causes 'result_url' to throw an error of being unable to find the element in question.
+    """
+    try:
+        status_present = EC.presence_of_element_located((By.CLASS_NAME, "status__1eAa"))
+
+        WebDriverWait(driver, timeout).until(status_present)
     except TimeoutException:
         exit()
 
